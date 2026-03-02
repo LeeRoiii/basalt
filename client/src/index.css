@@ -1,0 +1,16 @@
+/* ============================================================
+   index.css — Entry point, imports all style modules
+   ============================================================
+   Load order matters: variables → animations → base → layout
+                       → editor → components → auth
+   ============================================================ */
+
+@import './styles/variables.css';
+@import './styles/animations.css';
+@import './styles/base.css';
+@import './styles/layout.css';
+@import './styles/editor.css';
+@import './styles/components.css';
+@import './styles/auth.css';
+.tab-container::-webkit-scrollbar { display: none; }
+.tab-container { -ms-overflow-style: none; scrollbar-width: none; }

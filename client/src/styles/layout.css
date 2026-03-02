@@ -1,0 +1,339 @@
+/* ============================================================
+   layout.css — App shell, activity bar, sidebar, file tree
+   ============================================================ */
+
+/* App shell */
+.app-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-primary);
+}
+
+/* ---- Activity Bar ---- */
+.activity-bar {
+    width: 48px;
+    min-width: 48px;
+    height: 100%;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 2px;
+    z-index: 10;
+}
+
+.activity-logo {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.activity-logo svg {
+    width: 22px;
+    height: 22px;
+    color: var(--accent);
+    filter: drop-shadow(0 0 8px rgba(124, 111, 239, 0.5));
+}
+
+.activity-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.activity-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+.activity-btn.active {
+    background: var(--accent-muted);
+    color: var(--accent);
+}
+
+.activity-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+}
+
+.activity-spacer {
+    flex: 1;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-min-width);
+    max-width: var(--sidebar-max-width);
+    height: 100%;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width var(--transition-normal);
+    position: relative;
+}
+
+.sidebar.collapsed {
+    width: 0;
+    min-width: 0;
+    border-right: none;
+}
+
+.sidebar-header {
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+}
+
+.sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+}
+
+.sidebar-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 0;
+}
+
+/* ---- Icon Button ---- */
+.icon-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+.icon-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---- File Tree ---- */
+.tree-item {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 8px 0 0;
+    cursor: pointer;
+    border-radius: 0;
+    position: relative;
+    transition: background var(--transition-fast);
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    gap: 2px;
+}
+
+.tree-item:hover {
+    background: var(--bg-hover);
+}
+
+.tree-item.active {
+    background: var(--bg-active);
+}
+
+.tree-item.selected {
+    background: var(--bg-active);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.tree-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent);
+}
+
+.tree-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.tree-item-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.tree-item-name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.tree-item.active .tree-item-name {
+    color: var(--text-primary);
+}
+
+.tree-item-actions {
+    display: none;
+    gap: 1px;
+    margin-left: auto;
+}
+
+.tree-item:hover .tree-item-actions {
+    display: flex;
+}
+
+.tree-folder-icon {
+    color: #e9c46a;
+}
+
+.tree-folder-icon.open {
+    color: #f4a261;
+}
+
+.tree-note-icon {
+    color: var(--text-muted);
+}
+
+.tree-note-icon.active {
+    color: var(--accent);
+}
+
+/* ---- Status Bar ---- */
+.status-bar {
+    height: 22px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 16px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    flex-shrink: 0;
+}
+
+.status-bar-left,
+.status-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-bar-center {
+    flex: 1;
+    text-align: center;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: default;
+}
+
+.status-item:hover {
+    color: white;
+}
+
+/* ---- Tooltip ---- */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 8px;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 100;
+    box-shadow: var(--shadow-md);
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+}
+
+/* ---- File Explorer Extras ---- */
+.empty-sidebar-msg {
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.tree-children {
+    display: flex;
+    flex-direction: column;
+}
+
+.tree-item.drag-over,
+.sidebar-content.drag-over-root {
+    background: var(--bg-hover);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
