@@ -73,6 +73,30 @@ const App: React.FC = () => {
     }
   }, [user]);
 
+  // Check for critical config
+  const isConfigMissing = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (isConfigMissing) {
+    return (
+      <div className="loading-overlay" style={{ background: '#0d0f12' }}>
+        <div className="auth-card" style={{ textAlign: 'center', border: '1px solid var(--danger)' }}>
+          <h2 style={{ color: 'var(--danger)', marginBottom: '12px' }}>Configuration Error</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6' }}>
+            Critical environment variables are missing. Please check your <code>.env</code> file and ensure
+            <code> VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> are set.
+          </p>
+          <button
+            className="auth-btn"
+            style={{ marginTop: '24px' }}
+            onClick={() => window.location.reload()}
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="loading-overlay">

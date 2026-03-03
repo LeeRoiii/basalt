@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Mountain } from 'lucide-react';
+import { Mountain, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const AuthPage: React.FC = () => {
     const [tab, setTab] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -14,6 +16,12 @@ const AuthPage: React.FC = () => {
         e.preventDefault();
         setError('');
         setSuccess('');
+
+        if (tab === 'signup' && password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -45,15 +53,21 @@ const AuthPage: React.FC = () => {
                 <p className="auth-tagline">Your second brain, crystallized.</p>
 
                 <div className="auth-tabs">
+                    <div
+                        className="auth-tab-indicator"
+                        style={{
+                            transform: `translateX(${tab === 'login' ? '0%' : '100%'})`
+                        }}
+                    />
                     <button
                         className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
-                        onClick={() => { setTab('login'); setError(''); setSuccess(''); }}
+                        onClick={() => { setTab('login'); setError(''); setSuccess(''); setShowPassword(false); }}
                     >
                         Sign In
                     </button>
                     <button
                         className={`auth-tab ${tab === 'signup' ? 'active' : ''}`}
-                        onClick={() => { setTab('signup'); setError(''); setSuccess(''); }}
+                        onClick={() => { setTab('signup'); setError(''); setSuccess(''); setShowPassword(false); }}
                     >
                         Sign Up
                     </button>
@@ -77,17 +91,58 @@ const AuthPage: React.FC = () => {
                     </div>
                     <div className="form-group">
                         <label className="form-label" htmlFor="auth-password">Password</label>
-                        <input
-                            id="auth-password"
-                            type="password"
-                            className="form-input"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            minLength={6}
-                        />
+                        <div className="password-input-wrapper" style={{ position: 'relative' }}>
+                            <input
+                                id="auth-password"
+                                type={showPassword ? 'text' : 'password'}
+                                className="form-input"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength={6}
+                                style={{ paddingRight: '40px' }}
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{
+                                    position: 'absolute',
+                                    right: '8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--text-muted)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '4px'
+                                }}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
+
+                    {tab === 'signup' && (
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="auth-confirm-password">Confirm Password</label>
+                            <input
+                                id="auth-confirm-password"
+                                type={showPassword ? 'text' : 'password'}
+                                className="form-input"
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                minLength={6}
+                            />
+                        </div>
+                    )}
+
                     <button type="submit" className="auth-btn" disabled={loading}>
                         {loading ? 'Loading...' : tab === 'login' ? 'Sign In' : 'Create Account'}
                     </button>

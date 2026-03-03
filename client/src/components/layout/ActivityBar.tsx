@@ -53,11 +53,36 @@ const ActivityBar: React.FC<ActivityBarProps> = ({ currentView, onViewChange }) 
 
                 <div className="activity-spacer" />
 
+                <div className="activity-divider" style={{ width: '20px', height: '1px', background: 'var(--border-subtle)', margin: '8px 0' }} />
+
+                <div
+                    className="activity-user-profile"
+                    title={user?.email}
+                    style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, var(--accent), #9333ea)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        color: 'white',
+                        marginBottom: '8px',
+                        cursor: 'default',
+                        boxShadow: '0 4px 12px rgba(124, 111, 239, 0.2)'
+                    }}
+                >
+                    {user?.email?.[0].toUpperCase() || 'U'}
+                </div>
+
                 <button
                     className="activity-btn"
                     title="Sign Out"
                     data-tooltip="Sign Out"
                     onClick={() => setShowConfirm(true)}
+                    style={{ marginBottom: '12px' }}
                 >
                     <LogOut size={18} />
                 </button>
