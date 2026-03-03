@@ -1,15 +1,18 @@
 {
   "name": "basalt",
   "version": "1.0.0",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "description": "Basalt — Obsidian-like note-taking app on the web",
   "private": true,
   "scripts": {
     "dev": "concurrently --names \"client,server\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
-    "build": "npm run build --prefix client",
-    "install:all": "npm install && npm install --prefix client && npm install --prefix server",
-    "postinstall": "npm install --prefix client"
+    "build": "npm run build -w client",
+    "install:all": "npm install && npm install -w client && npm install -w server"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
