@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mountain, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useSnackbarStore } from '../../store/snackbarStore';
 
 const AuthPage: React.FC = () => {
     const [tab, setTab] = useState<'login' | 'signup'>('login');
@@ -10,12 +11,11 @@ const AuthPage: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const { showSnackbar } = useSnackbarStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
 
         if (tab === 'signup' && password !== confirmPassword) {
             setError('Passwords do not match');
@@ -31,7 +31,7 @@ const AuthPage: React.FC = () => {
             } else {
                 const { error } = await supabase.auth.signUp({ email, password });
                 if (error) throw error;
-                setSuccess('Check your email to confirm your account!');
+                showSnackbar('Check your email to confirm your account!', 'success');
             }
         } catch (err: unknown) {
             if (err instanceof Error) setError(err.message);
@@ -61,20 +61,19 @@ const AuthPage: React.FC = () => {
                     />
                     <button
                         className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
-                        onClick={() => { setTab('login'); setError(''); setSuccess(''); setShowPassword(false); }}
+                        onClick={() => { setTab('login'); setError(''); setShowPassword(false); }}
                     >
                         Sign In
                     </button>
                     <button
                         className={`auth-tab ${tab === 'signup' ? 'active' : ''}`}
-                        onClick={() => { setTab('signup'); setError(''); setSuccess(''); setShowPassword(false); }}
+                        onClick={() => { setTab('signup'); setError(''); setShowPassword(false); }}
                     >
                         Sign Up
                     </button>
                 </div>
 
                 {error && <div className="auth-error">{error}</div>}
-                {success && <div className="auth-success">{success}</div>}
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">

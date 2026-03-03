@@ -7,6 +7,7 @@ import foldersRouter from './routes/folders';
 import tagsRouter from './routes/tags';
 import searchRouter from './routes/search';
 import uploadRouter from './routes/upload';
+import kanbanRouter from './routes/kanban';
 
 // Search for .env in root or parent
 const envPath = path.resolve(process.cwd(), '.env');
@@ -42,6 +43,7 @@ app.use('/api/folders', foldersRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/kanban', kanbanRouter);
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

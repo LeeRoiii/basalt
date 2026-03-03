@@ -68,27 +68,45 @@ router.delete('/trash', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
     const { data, error } = await supabase
         .from('notes')
-        .select('*, tags(*), folders(name)')
+        .select('*, tags(*), folders(name), columns:kanban_columns(*, tasks:kanban_tasks(*))')
         .eq('id', req.params.id)
         .single();
 
     if (error) return res.status(404).json({ error: 'Note not found' });
+
+    // Sort columns and tasks by order
+    if (data.type === 'kanban' && data.columns) {
+        data.columns.sort((a: any, b: any) => a.order - b.order);
+        data.columns.forEach((col: any) => {
+            if (col.tasks) {
+                col.tasks.sort((a: any, b: any) => a.order - b.order);
+            }
+        });
+    }
+
     return res.json(data);
 });
 
 // POST create note
 router.post('/', async (req: Request, res: Response) => {
-    const { title, content, folder_id, user_id, tag_ids } = req.body;
+    console.log('📥 POST /notes', req.body);
+    const { title, content, folder_id, user_id, tag_ids, type } = req.body;
     const { data, error } = await supabase
         .from('notes')
-        .insert({ title: title || 'Untitled', content: content || '', folder_id, user_id })
+        .insert({ title: title || 'Untitled', content: content || '', folder_id, user_id, type: type || 'note' })
         .select()
         .single();
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) {
+        console.error('❌ Supabase Note Insert Error:', error);
+        return res.status(400).json({ error: error.message });
+    }
+
+    console.log('✅ Note created:', data.id);
 
     // Link tags if provided
     if (tag_ids && tag_ids.length > 0 && data) {
+        console.log('🔗 Linking tags...', tag_ids);
         const noteTagInserts = tag_ids.map((tag_id: string) => ({ note_id: data.id, tag_id }));
         await supabase.from('note_tags').insert(noteTagInserts);
     }
@@ -98,10 +116,10 @@ router.post('/', async (req: Request, res: Response) => {
 
 // PUT update note
 router.put('/:id', async (req: Request, res: Response) => {
-    const { title, content, folder_id, tag_ids } = req.body;
+    const { title, content, folder_id, tag_ids, type } = req.body;
     const { data, error } = await supabase
         .from('notes')
-        .update({ title, content, folder_id, updated_at: new Date().toISOString() })
+        .update({ title, content, folder_id, type, updated_at: new Date().toISOString() })
         .eq('id', req.params.id)
         .select()
         .single();

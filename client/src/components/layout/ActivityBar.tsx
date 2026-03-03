@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mountain, Files, Search, Tag, GitGraph, LogOut, AlertTriangle, Trash2, PenTool } from 'lucide-react';
+import { Mountain, Files, Search, Tag, GitGraph, LogOut, AlertTriangle, Trash2, PenTool, Layout } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { useAuthStore } from '../../store/authStore';
 import type { SidebarView } from '../../types';
@@ -11,6 +11,7 @@ interface ActivityBarProps {
 
 const VIEWS: { id: SidebarView; icon: React.ReactNode; label: string }[] = [
     { id: 'explorer', icon: <Files size={18} />, label: 'Explorer' },
+    { id: 'kanban', icon: <Layout size={18} />, label: 'Projects' },
     { id: 'search', icon: <Search size={18} />, label: 'Search' },
     { id: 'tags', icon: <Tag size={18} />, label: 'Tags' },
     { id: 'graph', icon: <GitGraph size={18} />, label: 'Graph' },

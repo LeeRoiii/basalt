@@ -57,6 +57,23 @@ interface NoteState {
     permanentlyDeleteNote: (id: string) => Promise<void>;
     permanentlyDeleteFolder: (id: string) => Promise<void>;
     emptyTrash: (userId: string) => Promise<void>;
+    createWelcomeNote: (userId: string) => Promise<void>;
+    createKanban: (userId: string, folderId?: string, title?: string) => Promise<Note>;
+
+    // Kanban Actions
+    addColumn: (noteId: string, title: string, order: number) => Promise<void>;
+    updateColumn: (id: string, data: { title?: string, order?: number }) => Promise<void>;
+    deleteColumn: (id: string) => Promise<void>;
+    addTask: (columnId: string, content: string, order: number, description?: string, due_date?: string, tags?: string[]) => Promise<void>;
+    updateTask: (id: string, data: {
+        content?: string,
+        column_id?: string,
+        order?: number,
+        description?: string,
+        due_date?: string,
+        tags?: string[]
+    }) => Promise<void>;
+    deleteTask: (id: string) => Promise<void>;
 }
 
 export const useNoteStore = create<NoteState>((set) => ({
@@ -86,15 +103,6 @@ export const useNoteStore = create<NoteState>((set) => ({
     setNotes: (notes) => set({ notes }),
     setFolders: (folders) => set({ folders }),
     setTags: (tags) => set({ tags }),
-    setActiveNote: (note) => set((state) => {
-        if (!note) return { activeNote: null };
-        const exists = state.openNotes.find((n) => n.id === note.id);
-        if (exists) {
-            return { activeNote: note };
-        } else {
-            return { activeNote: note, openNotes: [...state.openNotes, note] };
-        }
-    }),
     closeNote: (id) => set((state) => {
         const remaining = state.openNotes.filter(n => n.id !== id);
         let newActive = state.activeNote;
@@ -102,6 +110,28 @@ export const useNoteStore = create<NoteState>((set) => ({
             newActive = remaining.length > 0 ? remaining[remaining.length - 1] : null;
         }
         return { openNotes: remaining, activeNote: newActive };
+    }),
+    setActiveNote: (note) => set((state) => {
+        if (!note) return { activeNote: null };
+        const exists = state.openNotes.find((n) => n.id === note.id);
+
+        // If it's a kanban note, we might need to fetch its full content (columns/tasks)
+        // because the bulk fetch might not have included them or they might be stale
+        if (note.type === 'kanban') {
+            api.get(`/notes/${note.id}`).then(({ data }) => {
+                set((s) => ({
+                    notes: s.notes.map(n => n.id === data.id ? data : n),
+                    activeNote: s.activeNote?.id === data.id ? data : s.activeNote,
+                    openNotes: s.openNotes.map(n => n.id === data.id ? data : n)
+                }));
+            });
+        }
+
+        if (exists) {
+            return { activeNote: note };
+        } else {
+            return { activeNote: note, openNotes: [...state.openNotes, note] };
+        }
     }),
     closeOtherNotes: (id) => set((state) => {
         const kept = state.openNotes.filter(n => n.id === id);
@@ -131,6 +161,11 @@ export const useNoteStore = create<NoteState>((set) => ({
                 lastFetched: { ...state.lastFetched, notes: Date.now() },
                 isFetching: { ...state.isFetching, notes: false }
             }));
+
+            // Handle Welcome Note for brand new accounts
+            if (data.length === 0 && !localStorage.getItem(`basalt_welcome_${userId}`)) {
+                await useNoteStore.getState().createWelcomeNote(userId);
+            }
         } catch (error) {
             console.error('Failed to fetch notes:', error);
             set((state) => ({ isFetching: { ...state.isFetching, notes: false } }));
@@ -184,6 +219,7 @@ export const useNoteStore = create<NoteState>((set) => ({
                 content: '# Untitled\n\nStart writing here...',
                 user_id: userId,
                 folder_id: folderId || null,
+                type: 'note'
             });
             set((state) => ({
                 notes: [data, ...state.notes],
@@ -313,7 +349,7 @@ export const useNoteStore = create<NoteState>((set) => ({
         }
     },
 
-    restoreNote: async (id) => {
+    restoreNote: async (id: string) => {
         try {
             await api.put(`/notes/${id}/restore`);
             set((state) => {
@@ -328,7 +364,7 @@ export const useNoteStore = create<NoteState>((set) => ({
         }
     },
 
-    restoreFolder: async (id) => {
+    restoreFolder: async (id: string) => {
         try {
             await api.put(`/folders/${id}/restore`);
             set((state) => {
@@ -343,7 +379,7 @@ export const useNoteStore = create<NoteState>((set) => ({
         }
     },
 
-    permanentlyDeleteNote: async (id) => {
+    permanentlyDeleteNote: async (id: string) => {
         try {
             await api.delete(`/notes/${id}/permanent`);
             set((state) => ({ trashNotes: state.trashNotes.filter((n) => n.id !== id) }));
@@ -352,7 +388,7 @@ export const useNoteStore = create<NoteState>((set) => ({
         }
     },
 
-    permanentlyDeleteFolder: async (id) => {
+    permanentlyDeleteFolder: async (id: string) => {
         try {
             await api.delete(`/folders/${id}/permanent`);
             set((state) => ({ trashFolders: state.trashFolders.filter((f) => f.id !== id) }));
@@ -370,6 +406,225 @@ export const useNoteStore = create<NoteState>((set) => ({
             set({ trashNotes: [], trashFolders: [] });
         } catch (error) {
             console.error('Failed to empty trash:', error);
+        }
+    },
+
+    createWelcomeNote: async (userId) => {
+        const welcomeContent = `# Welcome to Basalt! 🗻
+
+Welcome to your new second brain. Basalt is a minimalist, high-performance Markdown editor designed for deep thought and connected knowledge.
+
+### 🚀 Getting Started
+*   **Create a Note**: Click the **+** icon in the sidebar or use the "New Note" button.
+*   **Organize with Folders**: Use the folder icon to group related notes.
+*   **Tags**: Add \`#tag\` anywhere in your text, and Basalt will automatically track it in the Tags panel.
+
+### 🔗 The Power of Backlinks
+Basalt uses "Wiki-links" to connect your thoughts. 
+*   Type \`[[Title of Another Note]]\` to create a link.
+*   Check the **Backlinks** section at the bottom of any note to see what other notes reference it.
+
+### 📄 Professional Export
+Need to share your notes?
+*   Switch to **Preview Mode**.
+*   Click the **Print** icon to generate a professional PDF with automatic page numbering and Obsidian-style formatting.
+
+### ⌨️ Keyboard Power
+*   \`Ctrl + K\` (or \`Cmd + K\`): Open the Global Search and Command Palette.
+*   \`Ctrl + S\`: Manual save (though Basalt auto-saves for you!).
+
+---
+*This note was automatically created to help you get started. You can delete it anytime!*`;
+
+        try {
+            const { data } = await api.post('/notes', {
+                title: 'Welcome to Basalt',
+                content: welcomeContent,
+                user_id: userId,
+            });
+            set((state) => ({
+                notes: [data, ...state.notes],
+                activeNote: data,
+                openNotes: [...state.openNotes, data]
+            }));
+            localStorage.setItem(`basalt_welcome_${userId}`, 'true');
+        } catch (error) {
+            console.error('Failed to create welcome note:', error);
+        }
+    },
+
+    createKanban: async (userId: string, folderId?: string, title?: string) => {
+        try {
+            // 1. Create the base note
+            const { data: note } = await api.post('/notes', {
+                title: title || 'New Project',
+                content: '',
+                user_id: userId,
+                folder_id: folderId || null,
+                type: 'kanban'
+            });
+
+            // 2. Initialize default columns
+            const col1 = await api.post('/kanban/columns', { note_id: note.id, title: 'To Do', order: 0 });
+            const col2 = await api.post('/kanban/columns', { note_id: note.id, title: 'In Progress', order: 1 });
+            const col3 = await api.post('/kanban/columns', { note_id: note.id, title: 'Done', order: 2 });
+
+            const fullNote = { ...note, columns: [col1.data, col2.data, col3.data] };
+
+            set((state) => ({
+                notes: [fullNote, ...state.notes],
+                activeNote: fullNote,
+                openNotes: [...state.openNotes, fullNote]
+            }));
+            return fullNote;
+        } catch (error) {
+            console.error('❌ createKanban error:', error);
+            throw error;
+        }
+    },
+
+    addColumn: async (noteId, title, order) => {
+        try {
+            const { data: column } = await api.post('/kanban/columns', { note_id: noteId, title, order });
+            set((state) => ({
+                notes: state.notes.map(n => n.id === noteId ? { ...n, columns: [...(n.columns || []), { ...column, tasks: [] }] } : n),
+                activeNote: state.activeNote?.id === noteId ? { ...state.activeNote, columns: [...(state.activeNote.columns || []), { ...column, tasks: [] }] } : state.activeNote,
+                openNotes: state.openNotes.map(n => n.id === noteId ? { ...n, columns: [...(n.columns || []), { ...column, tasks: [] }] } : n),
+            }));
+        } catch (error) {
+            console.error('Failed to add column:', error);
+        }
+    },
+
+    updateColumn: async (id, columnData) => {
+        try {
+            const { data: column } = await api.put(`/kanban/columns/${id}`, columnData);
+            set((state) => {
+                const updateNoteObj = (n: Note) => {
+                    if (!n.columns) return n;
+                    return { ...n, columns: n.columns.map(c => c.id === id ? { ...c, ...column } : c) };
+                };
+                return {
+                    notes: state.notes.map(updateNoteObj),
+                    activeNote: state.activeNote ? updateNoteObj(state.activeNote) : null,
+                    openNotes: state.openNotes.map(updateNoteObj),
+                };
+            });
+        } catch (error) {
+            console.error('Failed to update column:', error);
+        }
+    },
+
+    deleteColumn: async (id) => {
+        try {
+            await api.delete(`/kanban/columns/${id}`);
+            set((state) => {
+                const updateNoteObj = (n: Note) => {
+                    if (!n.columns) return n;
+                    return { ...n, columns: n.columns.filter(c => c.id !== id) };
+                };
+                return {
+                    notes: state.notes.map(updateNoteObj),
+                    activeNote: state.activeNote ? updateNoteObj(state.activeNote) : null,
+                    openNotes: state.openNotes.map(updateNoteObj),
+                };
+            });
+        } catch (error) {
+            console.error('Failed to delete column:', error);
+        }
+    },
+
+    addTask: async (columnId, content, order, description, due_date, tags) => {
+        try {
+            const { data: task } = await api.post('/kanban/tasks', {
+                column_id: columnId,
+                content,
+                order,
+                description,
+                due_date,
+                tags
+            });
+            set((state) => {
+                const updateNoteObj = (n: Note) => {
+                    if (!n.columns) return n;
+                    return {
+                        ...n,
+                        columns: n.columns.map(c => c.id === columnId ? { ...c, tasks: [...(c.tasks || []), task].sort((a, b) => a.order - b.order) } : c)
+                    };
+                };
+                return {
+                    notes: state.notes.map(updateNoteObj),
+                    activeNote: state.activeNote ? updateNoteObj(state.activeNote) : null,
+                    openNotes: state.openNotes.map(updateNoteObj),
+                };
+            });
+        } catch (error) {
+            console.error('Failed to add task:', error);
+        }
+    },
+
+    updateTask: async (id, taskData) => {
+        try {
+            const { data: task } = await api.put(`/kanban/tasks/${id}`, taskData);
+            set((state) => {
+                const updateNoteObj = (n: Note) => {
+                    if (!n.columns) return n;
+
+                    // Task might have moved columns
+                    return {
+                        ...n,
+                        columns: n.columns.map(c => {
+                            // Remove from old column if it was there and moved
+                            let tasks = c.tasks || [];
+                            if (taskData.column_id && c.id !== taskData.column_id) {
+                                tasks = tasks.filter(t => t.id !== id);
+                            } else if (c.id === (taskData.column_id || task.column_id)) {
+                                // Add or update in target column
+                                const exists = tasks.find(t => t.id === id);
+                                if (exists) {
+                                    tasks = tasks.map(t => t.id === id ? { ...t, ...task } : t);
+                                } else {
+                                    tasks = [...tasks, task];
+                                }
+                                tasks.sort((a, b) => a.order - b.order);
+                            }
+                            return { ...c, tasks };
+                        })
+                    };
+                };
+                return {
+                    notes: state.notes.map(updateNoteObj),
+                    activeNote: state.activeNote ? updateNoteObj(state.activeNote) : null,
+                    openNotes: state.openNotes.map(updateNoteObj),
+                };
+            });
+        } catch (error) {
+            console.error('Failed to update task:', error);
+        }
+    },
+
+    deleteTask: async (id) => {
+        try {
+            await api.delete(`/kanban/tasks/${id}`);
+            set((state) => {
+                const updateNoteObj = (n: Note) => {
+                    if (!n.columns) return n;
+                    return {
+                        ...n,
+                        columns: n.columns.map(c => ({
+                            ...c,
+                            tasks: (c.tasks || []).filter(t => t.id !== id)
+                        }))
+                    };
+                };
+                return {
+                    notes: state.notes.map(updateNoteObj),
+                    activeNote: state.activeNote ? updateNoteObj(state.activeNote) : null,
+                    openNotes: state.openNotes.map(updateNoteObj),
+                };
+            });
+        } catch (error) {
+            console.error('Failed to delete task:', error);
         }
     },
 }));

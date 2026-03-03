@@ -24,6 +24,28 @@ export interface Tag {
     created_at: string;
 }
 
+export interface KanbanTask {
+    id: string;
+    column_id: string;
+    content: string;
+    description?: string;
+    due_date?: string;
+    tags?: any[];
+    order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface KanbanColumn {
+    id: string;
+    note_id: string;
+    title: string;
+    order: number;
+    created_at: string;
+    updated_at: string;
+    tasks?: KanbanTask[];
+}
+
 export interface Note {
     id: string;
     title: string;
@@ -33,11 +55,13 @@ export interface Note {
     is_pinned: boolean;
     is_archived: boolean;
     word_count: number;
+    type: 'note' | 'kanban';
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;
     tags?: Tag[];
     folders?: { name: string };
+    columns?: KanbanColumn[];
 }
 
 export interface SearchResult {
@@ -50,4 +74,4 @@ export interface SearchResult {
 }
 
 export type EditorMode = 'edit' | 'preview';
-export type SidebarView = 'explorer' | 'search' | 'tags' | 'graph' | 'trash' | 'draw';
+export type SidebarView = 'explorer' | 'search' | 'tags' | 'graph' | 'trash' | 'draw' | 'kanban';

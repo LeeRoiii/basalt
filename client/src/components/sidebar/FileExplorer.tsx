@@ -188,9 +188,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
 
     // Build folder tree
     const rootFolders = folders.filter((f) => !f.parent_id);
-    const rootNotes = notes.filter((n) => !n.folder_id);
+    const rootNotes = notes.filter((n) => !n.folder_id && n.type === 'note');
 
-    const getFolderNotes = (folderId: string) => notes.filter((n) => n.folder_id === folderId);
+    const getFolderNotes = (folderId: string) => notes.filter((n) => n.folder_id === folderId && n.type === 'note');
     const getChildFolders = (parentId: string) => folders.filter((f) => f.parent_id === parentId);
 
     const renderFolder = (folder: FolderType, depth = 0) => {
@@ -333,17 +333,23 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
                         justifyContent: 'space-between'
                     }}
                     onClick={onSearchClick}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-strong)'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-subtle)')}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Search size={14} style={{ flexShrink: 0 }} />
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Search notes...</span>
                     </div>
-                    <div style={{
-                        fontSize: 11, backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)',
-                        padding: '2px 6px', borderRadius: 4, opacity: 0.7
-                    }}>
+                    <div
+                        style={{
+                            fontSize: 11,
+                            backgroundColor: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-subtle)',
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            opacity: 0.7,
+                        }}
+                    >
                         {navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? '⌘' : 'Ctrl'}+K
                     </div>
                 </div>
@@ -359,9 +365,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
                 {rootFolders.map((f) => renderFolder(f))}
                 {rootNotes.map((n) => renderNote(n))}
                 {folders.length === 0 && notes.length === 0 && (
-                    <div className="empty-sidebar-msg">
-                        No notes yet. Create one!
-                    </div>
+                    <div className="empty-sidebar-msg">No notes yet. Create one!</div>
                 )}
             </div>
 
@@ -382,8 +386,12 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
                             }}
                         />
                         <div className="modal-actions">
-                            <button className="btn btn-secondary" onClick={() => setShowNewFolderModal(false)}>Cancel</button>
-                            <button className="btn btn-primary" onClick={handleCreateFolder}>Create</button>
+                            <button className="btn btn-secondary" onClick={() => setShowNewFolderModal(false)}>
+                                Cancel
+                            </button>
+                            <button className="btn btn-primary" onClick={handleCreateFolder}>
+                                Create
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -391,32 +399,41 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
 
             {/* Context Menu */}
             {contextMenu && (
-                <div
-                    className="context-menu"
-                    style={{ left: contextMenu.x, top: contextMenu.y }}
-                >
+                <div className="context-menu" style={{ left: contextMenu.x, top: contextMenu.y }}>
                     {isMultiSelection ? (
                         <div className="context-menu-item danger" onClick={handleBulkDelete}>
                             <Trash2 size={14} /> Delete {selectedItems.size} items
                         </div>
                     ) : contextMenu.type === 'folder' ? (
                         <>
-                            <div className="context-menu-item" onClick={() => { handleCreateNote(contextMenu.id); closeContextMenu(); }}>
+                            <div
+                                className="context-menu-item"
+                                onClick={() => {
+                                    handleCreateNote(contextMenu.id);
+                                    closeContextMenu();
+                                }}
+                            >
                                 <Plus size={14} /> New Note Inside
                             </div>
-                            <div className="context-menu-item" onClick={() => {
-                                setTargetParentId(contextMenu.id);
-                                setShowNewFolderModal(true);
-                                closeContextMenu();
-                            }}>
+                            <div
+                                className="context-menu-item"
+                                onClick={() => {
+                                    setTargetParentId(contextMenu.id);
+                                    setShowNewFolderModal(true);
+                                    closeContextMenu();
+                                }}
+                            >
                                 <FolderPlus size={14} /> New Subfolder
                             </div>
                             <div className="context-menu-divider" />
-                            <div className="context-menu-item" onClick={() => {
-                                setRenamingId(contextMenu.id);
-                                setRenameValue(contextMenu.name);
-                                closeContextMenu();
-                            }}>
+                            <div
+                                className="context-menu-item"
+                                onClick={() => {
+                                    setRenamingId(contextMenu.id);
+                                    setRenameValue(contextMenu.name);
+                                    closeContextMenu();
+                                }}
+                            >
                                 <Edit2 size={14} /> Rename
                             </div>
                             <div className="context-menu-item danger" onClick={handleBulkDelete}>
@@ -425,11 +442,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
                         </>
                     ) : (
                         <>
-                            <div className="context-menu-item" onClick={() => {
-                                setRenamingId(contextMenu.id);
-                                setRenameValue(contextMenu.name);
-                                closeContextMenu();
-                            }}>
+                            <div
+                                className="context-menu-item"
+                                onClick={() => {
+                                    setRenamingId(contextMenu.id);
+                                    setRenameValue(contextMenu.name);
+                                    closeContextMenu();
+                                }}
+                            >
                                 <Edit2 size={14} /> Rename
                             </div>
                             <div className="context-menu-item danger" onClick={handleBulkDelete}>

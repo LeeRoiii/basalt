@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Eye, Edit3, Link2, Save, Clock, Hash } from 'lucide-react';
+import { Eye, Edit3, Link2, Save, Clock, Hash, Printer } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { api } from '../../lib/api';
 import type { Note } from '../../types';
 import MarkdownEditor from './MarkdownEditor';
 import MarkdownPreview from './MarkdownPreview';
 import TabBar from './TabBar';
+import KanbanView from './KanbanView';
 import { formatDistanceToNow } from 'date-fns';
 
 const EditorContainer: React.FC = () => {
@@ -23,6 +24,10 @@ const EditorContainer: React.FC = () => {
                 .catch(() => setBacklinks([]));
         }
     }, [activeNote?.id]);
+
+    const handlePrint = () => {
+        window.print();
+    };
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -62,31 +67,48 @@ const EditorContainer: React.FC = () => {
 
             <div className="editor-toolbar">
                 <div className="toolbar-group">
-                    <button
-                        className={`toolbar-btn ${editorMode === 'edit' ? 'active' : ''}`}
-                        onClick={() => setEditorMode('edit')}
-                        title="Edit mode"
-                    >
-                        <Edit3 size={14} />
-                        <span>Edit</span>
-                    </button>
-                    <button
-                        className={`toolbar-btn ${editorMode === 'preview' ? 'active' : ''}`}
-                        onClick={() => setEditorMode('preview')}
-                        title="Preview mode"
-                    >
-                        <Eye size={14} />
-                        <span>Preview</span>
-                    </button>
+                    {activeNote.type === 'note' && (
+                        <>
+                            <button
+                                className={`toolbar-btn ${editorMode === 'edit' ? 'active' : ''}`}
+                                onClick={() => setEditorMode('edit')}
+                                title="Edit mode"
+                            >
+                                <Edit3 size={14} />
+                                <span>Edit</span>
+                            </button>
+                            <button
+                                className={`toolbar-btn ${editorMode === 'preview' ? 'active' : ''}`}
+                                onClick={() => setEditorMode('preview')}
+                                title="Preview mode"
+                            >
+                                <Eye size={14} />
+                                <span>Preview</span>
+                            </button>
+                        </>
+                    )}
+
+                    {editorMode === 'preview' && activeNote.type === 'note' && (
+                        <button
+                            className="toolbar-btn print-btn"
+                            onClick={handlePrint}
+                            title="Print note to PDF"
+                        >
+                            <Printer size={14} />
+                            <span>Print</span>
+                        </button>
+                    )}
                 </div>
 
                 <div className="toolbar-divider" />
                 <div className="toolbar-spacer" />
 
                 {/* Word count */}
-                <span className="word-count-badge">
-                    {activeNote.content?.trim().split(/\s+/).filter(Boolean).length || 0} words
-                </span>
+                {activeNote.type === 'note' && (
+                    <span className="word-count-badge">
+                        {activeNote.content?.trim().split(/\s+/).filter(Boolean).length || 0} words
+                    </span>
+                )}
 
                 {/* Tags indicator */}
                 {activeNote.tags && activeNote.tags.length > 0 && (
@@ -123,19 +145,30 @@ const EditorContainer: React.FC = () => {
 
             {/* Editor Content */}
             <div className="editor-content">
-                {editorMode === 'edit' ? (
+                {activeNote.type === 'kanban' ? (
+                    <KanbanView note={activeNote} />
+                ) : editorMode === 'edit' ? (
                     <div className="editor-pane">
                         <MarkdownEditor noteId={activeNote.id} />
                     </div>
                 ) : (
-                    <div className="editor-pane" style={{ overflow: 'hidden' }}>
+                    <div className="editor-pane preview-mode-container">
+                        {/* Hidden print-only page header/footer */}
+                        <div className="print-header">
+                            <span className="print-title">{activeNote.title}</span>
+                        </div>
+
                         <MarkdownPreview content={activeNote.content || ''} />
+
+                        <div className="print-footer">
+                            <span className="page-counter">Page </span>
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* Backlinks */}
-            {backlinks.length > 0 && (
+            {activeNote.type === 'note' && backlinks.length > 0 && (
                 <div className="backlinks-panel">
                     <div className="backlinks-title">
                         <Link2 size={10} style={{ display: 'inline', marginRight: '4px' }} />

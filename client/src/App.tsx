@@ -13,7 +13,9 @@ import TagsPanel from './components/sidebar/TagsPanel';
 import GraphView from './components/sidebar/GraphView';
 import DrawView from './components/sidebar/DrawView';
 import TrashPanel from './components/sidebar/TrashPanel';
+import ProjectPanel from './components/sidebar/ProjectPanel';
 import EditorContainer from './components/editor/EditorContainer';
+import Snackbar from './components/common/Snackbar';
 
 const App: React.FC = () => {
   const { user, setUser, setLoading, loading } = useAuthStore();
@@ -114,6 +116,7 @@ const App: React.FC = () => {
     switch (sidebarView) {
       case 'explorer': return <FileExplorer onSearchClick={() => setIsSearchOpen(true)} />;
       case 'tags': return <TagsPanel />;
+      case 'kanban': return <ProjectPanel />;
       case 'graph': return null;
       case 'draw': return null;
       case 'trash': return null;
@@ -153,6 +156,9 @@ const App: React.FC = () => {
           onClose={() => setIsSearchOpen(false)}
         />
       )}
+
+      {/* Global Snackbar */}
+      <Snackbar />
     </div>
   );
 };

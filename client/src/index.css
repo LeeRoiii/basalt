@@ -11,6 +11,14 @@
 @import './styles/layout.css';
 @import './styles/editor.css';
 @import './styles/components.css';
+@import './styles/kanban.css';
 @import './styles/auth.css';
-.tab-container::-webkit-scrollbar { display: none; }
-.tab-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+.tab-container::-webkit-scrollbar {
+   display: none;
+}
+
+.tab-container {
+   -ms-overflow-style: none;
+   scrollbar-width: none;
+}

@@ -534,3 +534,204 @@
 [data-panel-resize-handle-id]:hover {
     background: var(--accent);
 }
+
+/* ============================================================
+   PRINT STYLES (OBSIDIAN-FLAVORED)
+   ============================================================ */
+@page {
+    margin: 20mm;
+}
+
+@media print {
+
+    html,
+    body {
+        height: auto !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+        counter-reset: page;
+        color: #1a1a1b !important;
+    }
+
+    .app-layout {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        background: white !important;
+        flex: none !important;
+    }
+
+    /* Target the container that holds title/preview/footers */
+    .preview-mode-container {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        flex: none !important;
+    }
+
+    /* Hide all UI elements */
+    .activity-bar,
+    .sidebar,
+    .tabs-row,
+    .editor-toolbar,
+    .backlinks-panel,
+    .status-bar,
+    .formatting-toolbar {
+        display: none !important;
+    }
+
+    .editor-area,
+    .editor-content,
+    .editor-pane {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+        flex: none !important;
+        position: static !important;
+    }
+
+    .preview-pane {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        color: #1a1a1b !important;
+        background: white !important;
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+        font-size: 11pt !important;
+        line-height: 1.6 !important;
+    }
+
+    .note-title-input {
+        padding: 0 0 24px 0 !important;
+        margin-bottom: 32px !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        color: #000 !important;
+        font-size: 28pt !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        display: block !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+    }
+
+    /* Professional Page Numbering */
+    .print-footer {
+        display: block !important;
+        position: fixed;
+        bottom: -10mm;
+        right: 0;
+        color: #9ca3af;
+        font-size: 9pt;
+        text-align: right;
+        z-index: 1000;
+    }
+
+    .page-counter::after {
+        counter-increment: page;
+        content: counter(page);
+    }
+
+    /* Typography & Hierarchy */
+    .preview-pane h1,
+    .preview-pane h2,
+    .preview-pane h3 {
+        color: #000 !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+        font-weight: 700 !important;
+        margin-top: 2em !important;
+        margin-bottom: 0.5em !important;
+        break-after: avoid;
+        page-break-after: avoid;
+    }
+
+    .preview-pane h1 {
+        font-size: 22pt !important;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 0.3em;
+    }
+
+    .preview-pane h2 {
+        font-size: 18pt !important;
+    }
+
+    .preview-pane h3 {
+        font-size: 14pt !important;
+    }
+
+    .preview-pane p,
+    .preview-pane li {
+        color: #1a1a1b !important;
+        margin-bottom: 1em !important;
+        break-inside: auto;
+    }
+
+    /* Blocks */
+    .preview-pane pre {
+        background: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 6px !important;
+        padding: 1em !important;
+        margin: 1.5em 0 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .preview-pane code {
+        background: #f3f4f6 !important;
+        color: #dc2626 !important;
+        border: 1px solid #e5e7eb !important;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+        font-size: 0.9em !important;
+    }
+
+    .preview-pane blockquote {
+        background: #ffffff !important;
+        border-left: 4px solid #7c6fef !important;
+        color: #4b5563 !important;
+        margin: 1.5em 0 !important;
+        padding: 0.5em 1.5em !important;
+        font-style: italic !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Tables */
+    .preview-pane table {
+        border: 1px solid #e5e7eb !important;
+        margin: 1.5em 0 !important;
+    }
+
+    .preview-pane th {
+        background: #f9fafb !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #e5e7eb !important;
+    }
+
+    .preview-pane td,
+    .preview-pane th {
+        border: 1px solid #e5e7eb !important;
+        padding: 8px 12px !important;
+    }
+
+    ::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* Hide print elements by default in UI */
+.print-header,
+.print-footer {
+    display: none;
+}
