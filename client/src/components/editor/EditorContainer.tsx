@@ -36,10 +36,8 @@ const EditorContainer: React.FC = () => {
     if (!activeNote) {
         return (
             <div className="editor-area">
-                <div className="tabs-row" style={{ height: '36px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center' }}>
+                <div className="tabs-row">
                     <TabBar />
-                </div>
-                <div className="editor-toolbar">
                 </div>
                 <div className="empty-state">
                     <svg className="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
@@ -58,7 +56,7 @@ const EditorContainer: React.FC = () => {
 
     return (
         <div className="editor-area">
-            <div className="tabs-row" style={{ height: '36px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center' }}>
+            <div className="tabs-row">
                 <TabBar />
             </div>
 

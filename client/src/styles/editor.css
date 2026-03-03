@@ -87,6 +87,15 @@
     flex-shrink: 0;
 }
 
+.tabs-row {
+    height: 36px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .toolbar-group {
     display: flex;
     align-items: center;
