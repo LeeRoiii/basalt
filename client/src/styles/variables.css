@@ -25,11 +25,11 @@
     --text-muted: #5a6270;
     --text-inverse: #0d0f12;
 
-    /* Accent - Indigo volcanic purple */
-    --accent: #7c6fef;
-    --accent-hover: #8f84f3;
-    --accent-muted: rgba(124, 111, 239, 0.15);
-    --accent-border: rgba(124, 111, 239, 0.3);
+    /* Accent - Supabase Green */
+    --accent: #3ECF8E;
+    --accent-hover: #4ee39e;
+    --accent-muted: rgba(62, 207, 142, 0.15);
+    --accent-border: rgba(62, 207, 142, 0.3);
 
     /* Status colors */
     --success: #4ade80;
@@ -66,5 +66,5 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
-    --shadow-glow: 0 0 20px rgba(124, 111, 239, 0.2);
+    --shadow-glow: 0 0 20px rgba(62, 207, 142, 0.2);
 }

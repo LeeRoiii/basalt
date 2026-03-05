@@ -63,7 +63,7 @@ const ActivityBar: React.FC<ActivityBarProps> = ({ currentView, onViewChange }) 
                         width: '32px',
                         height: '32px',
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, var(--accent), #9333ea)',
+                        background: 'linear-gradient(135deg, var(--accent), #22c55e)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -72,7 +72,7 @@ const ActivityBar: React.FC<ActivityBarProps> = ({ currentView, onViewChange }) 
                         color: 'white',
                         marginBottom: '8px',
                         cursor: 'default',
-                        boxShadow: '0 4px 12px rgba(124, 111, 239, 0.2)'
+                        boxShadow: '0 4px 12px rgba(62, 207, 142, 0.2)'
                     }}
                 >
                     {user?.email?.[0].toUpperCase() || 'U'}

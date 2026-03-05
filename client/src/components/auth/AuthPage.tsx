@@ -56,20 +56,14 @@ const AuthPage: React.FC = () => {
                     <div
                         className="auth-tab-indicator"
                         style={{
-                            transform: `translateX(${tab === 'login' ? '0%' : '100%'})`
+                            transform: `translateX(0%)`
                         }}
                     />
                     <button
-                        className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
+                        className={`auth-tab active`}
                         onClick={() => { setTab('login'); setError(''); setShowPassword(false); }}
                     >
                         Sign In
-                    </button>
-                    <button
-                        className={`auth-tab ${tab === 'signup' ? 'active' : ''}`}
-                        onClick={() => { setTab('signup'); setError(''); setShowPassword(false); }}
-                    >
-                        Sign Up
                     </button>
                 </div>
 

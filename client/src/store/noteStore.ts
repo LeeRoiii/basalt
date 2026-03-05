@@ -19,6 +19,7 @@ interface NoteState {
         notes: number;
         folders: number;
         tags: number;
+        folderId: string | null;
     };
     isFetching: {
         notes: boolean;
@@ -61,19 +62,23 @@ interface NoteState {
     createKanban: (userId: string, folderId?: string, title?: string) => Promise<Note>;
 
     // Kanban Actions
-    addColumn: (noteId: string, title: string, order: number) => Promise<void>;
-    updateColumn: (id: string, data: { title?: string, order?: number }) => Promise<void>;
+    addColumn: (noteId: string, title: string, order: number, color?: string) => Promise<void>;
+    updateColumn: (id: string, data: { title?: string, color?: string, order?: number }) => Promise<void>;
     deleteColumn: (id: string) => Promise<void>;
-    addTask: (columnId: string, content: string, order: number, description?: string, due_date?: string, tags?: string[]) => Promise<void>;
+    addTask: (columnId: string, content: string, order: number, description?: string, due_date?: string, priority?: string, tags?: string[]) => Promise<void>;
     updateTask: (id: string, data: {
         content?: string,
         column_id?: string,
         order?: number,
         description?: string,
         due_date?: string,
+        priority?: string,
         tags?: string[]
     }) => Promise<void>;
     deleteTask: (id: string) => Promise<void>;
+
+    // Store Management
+    clearStore: () => void;
 }
 
 export const useNoteStore = create<NoteState>((set) => ({
@@ -93,6 +98,7 @@ export const useNoteStore = create<NoteState>((set) => ({
         notes: 0,
         folders: 0,
         tags: 0,
+        folderId: null,
     },
     isFetching: {
         notes: false,
@@ -143,22 +149,40 @@ export const useNoteStore = create<NoteState>((set) => ({
     setSidebarView: (view) => set({ sidebarView: view }),
     setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-    fetchNotes: async (userId, folderId) => {
-        const { isFetching } = useNoteStore.getState();
+    clearStore: () => set({
+        notes: [],
+        folders: [],
+        trashNotes: [],
+        trashFolders: [],
+        tags: [],
+        activeNote: null,
+        openNotes: [],
+        activeFolder: null,
+        editorMode: 'edit',
+        sidebarView: 'explorer',
+        sidebarOpen: true,
+        isSaving: false,
+        lastFetched: { notes: 0, folders: 0, tags: 0, folderId: null },
+        isFetching: { notes: false, folders: false, tags: false }
+    }),
 
-        // Simple cache: if fetched in last 30s and not currently fetching, skip (unless folderId changes)
-        // But for notes, folderId might change, so we usually want to fetch if folderId is different
-        // For simplicity, let's just deduplicate concurrent requests first
-        if (isFetching.notes) return;
+    fetchNotes: async (userId, folderId) => {
+        const { isFetching, lastFetched } = useNoteStore.getState();
+        const now = Date.now();
+        const normalizedFolderId = folderId ?? null;
+        const folderChanged = normalizedFolderId !== lastFetched.folderId;
+
+        // Skip if currently fetching, or if we fetched within 30s AND the folder hasn't changed
+        if (isFetching.notes || (!folderChanged && now - lastFetched.notes < 30000)) return;
 
         set((state) => ({ isFetching: { ...state.isFetching, notes: true } }));
         try {
             const params: Record<string, string> = { user_id: userId };
-            if (folderId) params.folder_id = folderId;
+            if (normalizedFolderId) params.folder_id = normalizedFolderId;
             const { data } = await api.get('/notes', { params });
             set((state) => ({
                 notes: data,
-                lastFetched: { ...state.lastFetched, notes: Date.now() },
+                lastFetched: { ...state.lastFetched, notes: Date.now(), folderId: normalizedFolderId },
                 isFetching: { ...state.isFetching, notes: false }
             }));
 
@@ -465,9 +489,9 @@ Need to share your notes?
             });
 
             // 2. Initialize default columns
-            const col1 = await api.post('/kanban/columns', { note_id: note.id, title: 'To Do', order: 0 });
-            const col2 = await api.post('/kanban/columns', { note_id: note.id, title: 'In Progress', order: 1 });
-            const col3 = await api.post('/kanban/columns', { note_id: note.id, title: 'Done', order: 2 });
+            const col1 = await api.post('/kanban/columns', { note_id: note.id, title: 'To Do', color: '#3ECF8E', order: 0 });
+            const col2 = await api.post('/kanban/columns', { note_id: note.id, title: 'In Progress', color: '#facc15', order: 1 });
+            const col3 = await api.post('/kanban/columns', { note_id: note.id, title: 'Done', color: '#4ade80', order: 2 });
 
             const fullNote = { ...note, columns: [col1.data, col2.data, col3.data] };
 
@@ -483,9 +507,9 @@ Need to share your notes?
         }
     },
 
-    addColumn: async (noteId, title, order) => {
+    addColumn: async (noteId, title, order, color) => {
         try {
-            const { data: column } = await api.post('/kanban/columns', { note_id: noteId, title, order });
+            const { data: column } = await api.post('/kanban/columns', { note_id: noteId, title, color, order });
             set((state) => ({
                 notes: state.notes.map(n => n.id === noteId ? { ...n, columns: [...(n.columns || []), { ...column, tasks: [] }] } : n),
                 activeNote: state.activeNote?.id === noteId ? { ...state.activeNote, columns: [...(state.activeNote.columns || []), { ...column, tasks: [] }] } : state.activeNote,
@@ -534,7 +558,7 @@ Need to share your notes?
         }
     },
 
-    addTask: async (columnId, content, order, description, due_date, tags) => {
+    addTask: async (columnId, content, order, description, due_date, priority, tags) => {
         try {
             const { data: task } = await api.post('/kanban/tasks', {
                 column_id: columnId,
@@ -542,6 +566,7 @@ Need to share your notes?
                 order,
                 description,
                 due_date,
+                priority,
                 tags
             });
             set((state) => {

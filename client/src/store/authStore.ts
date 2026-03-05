@@ -18,5 +18,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     signOut: async () => {
         await supabase.auth.signOut();
         set({ user: null });
+
+        // Clear all cached data across the app on signout
+        try {
+            const { useNoteStore } = await import('./noteStore');
+            useNoteStore.getState().clearStore();
+        } catch (err) {
+            console.error('Failed to clear store on signout:', err);
+        }
     },
 }));

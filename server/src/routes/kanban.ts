@@ -8,10 +8,10 @@ const router = Router();
 // Create column
 router.post('/columns', async (req: Request, res: Response) => {
     console.log('📥 POST /kanban/columns', req.body);
-    const { note_id, title, order } = req.body;
+    const { note_id, title, color, order } = req.body;
     const { data, error } = await supabase
         .from('kanban_columns')
-        .insert({ note_id, title, order: order || 0 })
+        .insert({ note_id, title, color, order: order || 0 })
         .select()
         .single();
 
@@ -25,10 +25,14 @@ router.post('/columns', async (req: Request, res: Response) => {
 
 // Update column (rename/reorder)
 router.put('/columns/:id', async (req: Request, res: Response) => {
-    const { title, order } = req.body;
+    const { title, color, order } = req.body;
+    const updatePayload: Record<string, any> = {};
+    if (title !== undefined) updatePayload.title = title;
+    if (color !== undefined) updatePayload.color = color;
+    if (order !== undefined) updatePayload.order = order;
     const { data, error } = await supabase
         .from('kanban_columns')
-        .update({ title, order })
+        .update(updatePayload)
         .eq('id', req.params.id)
         .select()
         .single();
@@ -48,7 +52,7 @@ router.delete('/columns/:id', async (req: Request, res: Response) => {
 
 // Create task
 router.post('/tasks', async (req: Request, res: Response) => {
-    const { column_id, content, order, description, due_date, tags } = req.body;
+    const { column_id, content, order, description, due_date, priority, tags } = req.body;
     const { data, error } = await supabase
         .from('kanban_tasks')
         .insert({
@@ -57,6 +61,7 @@ router.post('/tasks', async (req: Request, res: Response) => {
             order: order || 0,
             description,
             due_date,
+            priority,
             tags
         })
         .select()
@@ -68,10 +73,18 @@ router.post('/tasks', async (req: Request, res: Response) => {
 
 // Update task (content, column move, reorder, and advanced fields)
 router.put('/tasks/:id', async (req: Request, res: Response) => {
-    const { content, column_id, order, description, due_date, tags } = req.body;
+    const { content, column_id, order, description, due_date, priority, tags } = req.body;
+    const updatePayload: Record<string, any> = {};
+    if (content !== undefined) updatePayload.content = content;
+    if (column_id !== undefined) updatePayload.column_id = column_id;
+    if (order !== undefined) updatePayload.order = order;
+    if (description !== undefined) updatePayload.description = description;
+    if (due_date !== undefined) updatePayload.due_date = due_date;
+    if (priority !== undefined) updatePayload.priority = priority;
+    if (tags !== undefined) updatePayload.tags = tags;
     const { data, error } = await supabase
         .from('kanban_tasks')
-        .update({ content, column_id, order, description, due_date, tags })
+        .update(updatePayload)
         .eq('id', req.params.id)
         .select()
         .single();

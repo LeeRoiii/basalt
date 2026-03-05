@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Layout, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { useAuthStore } from '../../store/authStore';
+import ConfirmationModal from '../common/ConfirmationModal';
 
 const ProjectPanel: React.FC = () => {
     const { user } = useAuthStore();
@@ -10,6 +11,7 @@ const ProjectPanel: React.FC = () => {
     const [renameValue, setRenameValue] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [newName, setNewName] = useState('');
+    const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
     const kanbanProjects = notes.filter(n => n.type === 'kanban');
 
@@ -118,9 +120,7 @@ const ProjectPanel: React.FC = () => {
                                     className="icon-btn danger"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (confirm('Delete this project board?')) {
-                                            deleteNote(project.id);
-                                        }
+                                        setProjectToDelete(project.id);
                                     }}
                                 >
                                     <Trash2 size={12} />
@@ -130,6 +130,21 @@ const ProjectPanel: React.FC = () => {
                     ))
                 )}
             </div>
+
+            <ConfirmationModal
+                isOpen={!!projectToDelete}
+                title="Delete Project"
+                message="Are you sure you want to delete this project board? All columns and tasks within this project will be moved to the trash."
+                confirmText="Delete Project"
+                isDanger
+                onConfirm={() => {
+                    if (projectToDelete) {
+                        deleteNote(projectToDelete);
+                        setProjectToDelete(null);
+                    }
+                }}
+                onCancel={() => setProjectToDelete(null)}
+            />
         </div>
     );
 };

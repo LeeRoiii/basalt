@@ -2,6 +2,7 @@ export interface User {
     id: string;
     email: string;
     created_at: string;
+    user_metadata?: any;
 }
 
 export interface Folder {
@@ -30,6 +31,7 @@ export interface KanbanTask {
     content: string;
     description?: string;
     due_date?: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
     tags?: any[];
     order: number;
     created_at: string;
@@ -40,6 +42,7 @@ export interface KanbanColumn {
     id: string;
     note_id: string;
     title: string;
+    color?: string;
     order: number;
     created_at: string;
     updated_at: string;

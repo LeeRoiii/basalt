@@ -36,16 +36,27 @@ const App: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email!, created_at: session.user.created_at });
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          created_at: session.user.created_at,
+          user_metadata: session.user.user_metadata
+        });
       }
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email!, created_at: session.user.created_at });
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          created_at: session.user.created_at,
+          user_metadata: session.user.user_metadata
+        });
       } else {
         setUser(null);
+        useNoteStore.getState().clearStore();
       }
     });
 

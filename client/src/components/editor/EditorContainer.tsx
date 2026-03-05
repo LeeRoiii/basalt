@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Eye, Edit3, Link2, Save, Clock, Hash, Printer } from 'lucide-react';
+import { Eye, Edit3, Link2, Save, Clock, Hash, Printer, Plus } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { api } from '../../lib/api';
 import type { Note } from '../../types';
@@ -7,12 +7,16 @@ import MarkdownEditor from './MarkdownEditor';
 import MarkdownPreview from './MarkdownPreview';
 import TabBar from './TabBar';
 import KanbanView from './KanbanView';
+import AddColumnModal from './AddColumnModal';
+import AddTaskModal from './AddTaskModal';
 import { formatDistanceToNow } from 'date-fns';
 
 const EditorContainer: React.FC = () => {
-    const { activeNote, editorMode, setEditorMode, updateNote, isSaving, setActiveNote } = useNoteStore();
+    const { activeNote, editorMode, setEditorMode, updateNote, isSaving, setActiveNote, addColumn } = useNoteStore();
     const [backlinks, setBacklinks] = useState<Note[]>([]);
     const [titleValue, setTitleValue] = useState('');
+    const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
+    const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
     const titleSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -88,6 +92,27 @@ const EditorContainer: React.FC = () => {
                         </>
                     )}
 
+                    {activeNote.type === 'kanban' && (
+                        <>
+                            <button
+                                className="toolbar-btn"
+                                onClick={() => setIsAddColumnModalOpen(true)}
+                                title="Add Column"
+                            >
+                                <Plus size={14} />
+                                <span>Add Column</span>
+                            </button>
+                            <button
+                                className="toolbar-btn"
+                                onClick={() => setIsAddTaskModalOpen(true)}
+                                title="Add Task"
+                            >
+                                <Plus size={14} />
+                                <span>Add Task</span>
+                            </button>
+                        </>
+                    )}
+
                     {editorMode === 'preview' && activeNote.type === 'note' && (
                         <button
                             className="toolbar-btn print-btn"
@@ -135,13 +160,6 @@ const EditorContainer: React.FC = () => {
                 </div>
             </div>
 
-            {/* Title Input */}
-            <input
-                className="note-title-input"
-                value={titleValue}
-                onChange={handleTitleChange}
-                placeholder="Note title..."
-            />
 
             {/* Editor Content */}
             <div className="editor-content">
@@ -181,6 +199,24 @@ const EditorContainer: React.FC = () => {
                         </div>
                     ))}
                 </div>
+            )}
+            {activeNote.type === 'kanban' && isAddColumnModalOpen && (
+                <AddColumnModal
+                    onClose={() => setIsAddColumnModalOpen(false)}
+                    onAdd={(title, color) => addColumn(activeNote.id, title, activeNote.columns?.length || 0, color)}
+                />
+            )}
+            {activeNote.type === 'kanban' && isAddTaskModalOpen && (
+                <AddTaskModal
+                    onClose={() => setIsAddTaskModalOpen(false)}
+                    onAdd={(title, description, dueDate, priority, tags) => {
+                        const firstColumn = activeNote.columns?.[0];
+                        if (firstColumn) {
+                            const { addTask } = useNoteStore.getState();
+                            addTask(firstColumn.id, title, firstColumn.tasks?.length || 0, description, dueDate, priority, tags);
+                        }
+                    }}
+                />
             )}
         </div>
     );

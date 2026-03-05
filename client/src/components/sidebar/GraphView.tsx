@@ -133,7 +133,7 @@ const GraphView: React.FC = () => {
                 const radius = 5 + Math.min(node.connections * 2, 12);
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = node.connections > 0 ? '#7c6fef' : '#3a3d4a';
+                ctx.fillStyle = node.connections > 0 ? '#3ECF8E' : '#3a3d4a';
                 ctx.fill();
                 ctx.strokeStyle = 'rgba(124, 111, 239, 0.5)';
                 ctx.lineWidth = 1.5;

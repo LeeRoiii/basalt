@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.kanban_columns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     note_id UUID NOT NULL REFERENCES public.notes(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
+    color TEXT,
     "order" INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.kanban_tasks (
     content TEXT NOT NULL,
     description TEXT,
     due_date TIMESTAMP WITH TIME ZONE,
+    priority TEXT,
     tags JSONB DEFAULT '[]'::jsonb,
     "order" INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,

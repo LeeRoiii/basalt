@@ -140,7 +140,7 @@ const basaltTheme = EditorView.theme({
         height: '100%',
     },
     '.cm-content': {
-        caretColor: '#7c6fef',
+        caretColor: '#3ECF8E',
         fontFamily: "'Inter', 'Roboto', 'Segoe UI', sans-serif",
         fontSize: '15px',
         padding: '40px 60px',
@@ -153,7 +153,7 @@ const basaltTheme = EditorView.theme({
     '.cm-h2': { fontSize: '1.75em', fontWeight: '700', color: 'white', marginTop: '0.4em', display: 'block' },
     '.cm-h3': { fontSize: '1.4em', fontWeight: '600', color: 'white', marginTop: '0.3em', display: 'block' },
     '.cm-quote': { borderLeft: '3px solid var(--accent)', color: 'var(--text-muted)', paddingLeft: '1rem', fontStyle: 'italic' },
-    '.cm-cursor': { borderLeftColor: '#7c6fef', borderLeftWidth: '2px' },
+    '.cm-cursor': { borderLeftColor: '#3ECF8E', borderLeftWidth: '2px' },
     '.cm-activeLine': { backgroundColor: 'rgba(255, 255, 255, 0.02)' },
     '.cm-selectionBackground, ::selection': { backgroundColor: '#2d3444 !important' },
     '.cm-gutters': { display: 'none' },
@@ -164,13 +164,13 @@ const basaltTheme = EditorView.theme({
     '.cm-header-2': { fontSize: '1.3em' },
     '.cm-strong': { color: '#f0abfc', fontWeight: '700' },
     '.cm-em': { color: '#67e8f9', fontStyle: 'italic' },
-    '.cm-link': { color: '#7c6fef' },
+    '.cm-link': { color: '#3ECF8E' },
     '.cm-url': { color: '#818cf8' },
     '.cm-code': { color: '#e879f9', fontFamily: "'JetBrains Mono', monospace" },
     '.cm-list': { color: '#cbd5e1' },
     '.cm-hr': { color: '#334155' },
     // Wiki link highlight
-    '.cm-wikilink': { color: '#7c6fef', cursor: 'pointer', borderBottom: '1px dashed rgba(124,111,239,0.4)' },
+    '.cm-wikilink': { color: '#3ECF8E', cursor: 'pointer', borderBottom: '1px dashed rgba(62,207,142,0.4)' },
 }, { dark: true });
 
 interface EditorProps {

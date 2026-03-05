@@ -4,7 +4,7 @@ import { useNoteStore } from '../../store/noteStore';
 import { useAuthStore } from '../../store/authStore';
 
 const TAG_COLORS = [
-    '#7c6fef', '#ec4899', '#f59e0b', '#10b981',
+    '#3ECF8E', '#ec4899', '#f59e0b', '#10b981',
     '#3b82f6', '#ef4444', '#8b5cf6', '#06b6d4',
 ];
 
