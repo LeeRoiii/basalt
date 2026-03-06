@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Eye, Edit3, Link2, Save, Clock, Hash, Printer, Plus } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { api } from '../../lib/api';
@@ -12,16 +12,13 @@ import AddTaskModal from './AddTaskModal';
 import { formatDistanceToNow } from 'date-fns';
 
 const EditorContainer: React.FC = () => {
-    const { activeNote, editorMode, setEditorMode, updateNote, isSaving, setActiveNote, addColumn } = useNoteStore();
+    const { activeNote, editorMode, setEditorMode, isSaving, setActiveNote, addColumn } = useNoteStore();
     const [backlinks, setBacklinks] = useState<Note[]>([]);
-    const [titleValue, setTitleValue] = useState('');
     const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
     const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
-    const titleSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (activeNote) {
-            setTitleValue(activeNote.title || '');
             // Fetch backlinks
             api.get(`/notes/${activeNote.id}/backlinks`)
                 .then(({ data }) => setBacklinks(data))
@@ -31,15 +28,6 @@ const EditorContainer: React.FC = () => {
 
     const handlePrint = () => {
         window.print();
-    };
-
-    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setTitleValue(val);
-        if (titleSaveRef.current) clearTimeout(titleSaveRef.current);
-        titleSaveRef.current = setTimeout(() => {
-            if (activeNote) updateNote(activeNote.id, { title: val });
-        }, 600);
     };
 
     if (!activeNote) {
