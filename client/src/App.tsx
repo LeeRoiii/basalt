@@ -16,6 +16,7 @@ import TrashPanel from './components/sidebar/TrashPanel';
 import ProjectPanel from './components/sidebar/ProjectPanel';
 import EditorContainer from './components/editor/EditorContainer';
 import Snackbar from './components/common/Snackbar';
+import PWAInstallPrompt from './components/common/PWAInstallPrompt';
 
 const App: React.FC = () => {
   const { user, setUser, setLoading, loading } = useAuthStore();
@@ -170,6 +171,9 @@ const App: React.FC = () => {
 
       {/* Global Snackbar */}
       <Snackbar />
+
+      {/* PWA Install / Update Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 };
