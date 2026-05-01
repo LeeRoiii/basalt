@@ -3,13 +3,15 @@ import { Eye, Edit3, Link2, Save, Clock, Hash, Printer, Plus } from 'lucide-reac
 import { useNoteStore } from '../../store/noteStore';
 import { api } from '../../lib/api';
 import type { Note } from '../../types';
-import MarkdownEditor from './MarkdownEditor';
-import MarkdownPreview from './MarkdownPreview';
 import TabBar from './TabBar';
-import KanbanView from './KanbanView';
-import AddColumnModal from './AddColumnModal';
-import AddTaskModal from './AddTaskModal';
 import { formatDistanceToNow } from 'date-fns';
+import Skeleton from '../common/Skeleton';
+
+const MarkdownEditor = React.lazy(() => import('./MarkdownEditor'));
+const MarkdownPreview = React.lazy(() => import('./MarkdownPreview'));
+const KanbanView = React.lazy(() => import('./KanbanView'));
+const AddColumnModal = React.lazy(() => import('./AddColumnModal'));
+const AddTaskModal = React.lazy(() => import('./AddTaskModal'));
 
 const EditorContainer: React.FC = () => {
     const { activeNote, editorMode, setEditorMode, isSaving, setActiveNote, addColumn } = useNoteStore();
@@ -151,26 +153,43 @@ const EditorContainer: React.FC = () => {
 
             {/* Editor Content */}
             <div className="editor-content">
-                {activeNote.type === 'kanban' ? (
-                    <KanbanView note={activeNote} />
-                ) : editorMode === 'edit' ? (
-                    <div className="editor-pane">
-                        <MarkdownEditor noteId={activeNote.id} />
-                    </div>
-                ) : (
-                    <div className="editor-pane preview-mode-container">
-                        {/* Hidden print-only page header/footer */}
-                        <div className="print-header">
-                            <span className="print-title">{activeNote.title}</span>
+                <React.Suspense fallback={
+                    <div style={{ padding: '40px 60px', maxWidth: '850px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <Skeleton width="60%" height={32} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <Skeleton width="100%" height={16} />
+                            <Skeleton width="95%" height={16} />
+                            <Skeleton width="98%" height={16} />
+                            <Skeleton width="40%" height={16} />
                         </div>
-
-                        <MarkdownPreview content={activeNote.content || ''} />
-
-                        <div className="print-footer">
-                            <span className="page-counter">Page </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+                            <Skeleton width="100%" height={16} />
+                            <Skeleton width="92%" height={16} />
+                            <Skeleton width="100%" height={16} />
                         </div>
                     </div>
-                )}
+                }>
+                    {activeNote.type === 'kanban' ? (
+                        <KanbanView note={activeNote} />
+                    ) : editorMode === 'edit' ? (
+                        <div className="editor-pane">
+                            <MarkdownEditor noteId={activeNote.id} />
+                        </div>
+                    ) : (
+                        <div className="editor-pane preview-mode-container">
+                            {/* Hidden print-only page header/footer */}
+                            <div className="print-header">
+                                <span className="print-title">{activeNote.title}</span>
+                            </div>
+
+                            <MarkdownPreview content={activeNote.content || ''} />
+
+                            <div className="print-footer">
+                                <span className="page-counter">Page </span>
+                            </div>
+                        </div>
+                    )}
+                </React.Suspense>
             </div>
 
             {/* Backlinks */}
@@ -188,24 +207,26 @@ const EditorContainer: React.FC = () => {
                     ))}
                 </div>
             )}
-            {activeNote.type === 'kanban' && isAddColumnModalOpen && (
-                <AddColumnModal
-                    onClose={() => setIsAddColumnModalOpen(false)}
-                    onAdd={(title, color) => addColumn(activeNote.id, title, activeNote.columns?.length || 0, color)}
-                />
-            )}
-            {activeNote.type === 'kanban' && isAddTaskModalOpen && (
-                <AddTaskModal
-                    onClose={() => setIsAddTaskModalOpen(false)}
-                    onAdd={(title, description, dueDate, priority, tags) => {
-                        const firstColumn = activeNote.columns?.[0];
-                        if (firstColumn) {
-                            const { addTask } = useNoteStore.getState();
-                            addTask(firstColumn.id, title, firstColumn.tasks?.length || 0, description, dueDate, priority, tags);
-                        }
-                    }}
-                />
-            )}
+            <React.Suspense fallback={null}>
+                {activeNote.type === 'kanban' && isAddColumnModalOpen && (
+                    <AddColumnModal
+                        onClose={() => setIsAddColumnModalOpen(false)}
+                        onAdd={(title, color) => addColumn(activeNote.id, title, activeNote.columns?.length || 0, color)}
+                    />
+                )}
+                {activeNote.type === 'kanban' && isAddTaskModalOpen && (
+                    <AddTaskModal
+                        onClose={() => setIsAddTaskModalOpen(false)}
+                        onAdd={(title, description, dueDate, priority, tags) => {
+                            const firstColumn = activeNote.columns?.[0];
+                            if (firstColumn) {
+                                const { addTask } = useNoteStore.getState();
+                                addTask(firstColumn.id, title, firstColumn.tasks?.length || 0, description, dueDate, priority, tags);
+                            }
+                        }}
+                    />
+                )}
+            </React.Suspense>
         </div>
     );
 };

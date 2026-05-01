@@ -5,14 +5,15 @@ const router = Router();
 
 // Full-text search across notes
 router.get('/', async (req: Request, res: Response) => {
-    const { q, user_id } = req.query;
+    const { q } = req.query;
+    const user_id = (req as any).user.id;
     if (!q) return res.json([]);
 
     const { data, error } = await supabase
         .from('notes')
         .select('id, title, content, updated_at, folder_id')
         .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
-        .eq('user_id', user_id as string)
+        .eq('user_id', user_id)
         .order('updated_at', { ascending: false })
         .limit(20);
 

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import compression from 'compression';
 import path from 'path';
 import notesRouter from './routes/notes';
 import foldersRouter from './routes/folders';
@@ -25,6 +26,8 @@ console.log(`📄 Env Path Attempted: ${envPath}`);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.use(compression());
+
 // Logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -36,6 +39,14 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+
+import { authenticate } from './middleware/auth';
+
+// Middleware for all API routes
+app.use('/api', (req, res, next) => {
+    if (req.path === '/health') return next();
+    return authenticate(req as any, res, next);
+});
 
 // Routes
 app.use('/api/notes', notesRouter);

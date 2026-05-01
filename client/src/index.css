@@ -1,3 +1,6 @@
+/* KaTeX styles for Math rendering */
+@import 'katex/dist/katex.min.css';
+
 /* ============================================================
    index.css — Entry point, imports all style modules
    ============================================================

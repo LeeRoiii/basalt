@@ -5,9 +5,9 @@ const router = Router();
 
 // GET all tags
 router.get('/', async (req: Request, res: Response) => {
-    const { user_id } = req.query;
+    const user_id = (req as any).user.id;
     let query = supabase.from('tags').select('*').order('name');
-    if (user_id) query = query.eq('user_id', user_id as string);
+    if (user_id) query = query.eq('user_id', user_id);
 
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
@@ -16,7 +16,8 @@ router.get('/', async (req: Request, res: Response) => {
 
 // POST create tag
 router.post('/', async (req: Request, res: Response) => {
-    const { name, color, user_id } = req.body;
+    const { name, color } = req.body;
+    const user_id = (req as any).user.id;
     const { data, error } = await supabase
         .from('tags')
         .insert({ name, color: color || '#6366f1', user_id })
@@ -29,7 +30,8 @@ router.post('/', async (req: Request, res: Response) => {
 
 // DELETE tag
 router.delete('/:id', async (req: Request, res: Response) => {
-    const { error } = await supabase.from('tags').delete().eq('id', req.params.id);
+    const user_id = (req as any).user.id;
+    const { error } = await supabase.from('tags').delete().eq('id', req.params.id).eq('user_id', user_id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Tag deleted' });
 });

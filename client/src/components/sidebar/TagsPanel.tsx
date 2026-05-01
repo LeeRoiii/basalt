@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Tag, Trash2 } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { useAuthStore } from '../../store/authStore';
+import Skeleton from '../common/Skeleton';
 
 const TAG_COLORS = [
     '#3ECF8E', '#ec4899', '#f59e0b', '#10b981',
@@ -10,7 +11,7 @@ const TAG_COLORS = [
 
 const TagsPanel: React.FC = () => {
     const { user } = useAuthStore();
-    const { tags, createTag, deleteTag, notes, setActiveNote } = useNoteStore();
+    const { tags, createTag, deleteTag, notes, setActiveNote, isFetching } = useNoteStore();
     const [showNewTag, setShowNewTag] = useState(false);
     const [newTagName, setNewTagName] = useState('');
     const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
@@ -67,11 +68,20 @@ const TagsPanel: React.FC = () => {
             )}
 
             <div className="sidebar-content">
-                {tags.length === 0 && (
+                {isFetching.tags && tags.length === 0 ? (
+                    <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[...Array(4)].map((_, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Skeleton circle width={16} height={16} />
+                                <Skeleton width={`${50 + Math.random() * 40}%`} height={14} />
+                            </div>
+                        ))}
+                    </div>
+                ) : tags.length === 0 ? (
                     <div style={{ padding: '16px 12px', color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center' }}>
                         No tags yet. Create one!
                     </div>
-                )}
+                ) : null}
                 {tags.map((tag) => {
                     const tagNotes = getNotesByTag(tag.id);
                     const isExpanded = selectedTag === tag.id;

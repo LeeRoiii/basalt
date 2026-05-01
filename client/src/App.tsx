@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useNoteStore } from './store/noteStore';
 import { supabase } from './lib/supabase';
@@ -20,16 +20,14 @@ import PWAInstallPrompt from './components/common/PWAInstallPrompt';
 
 const App: React.FC = () => {
   const { user, setUser, setLoading, loading } = useAuthStore();
-  const { fetchNotes, fetchFolders, fetchTags, sidebarOpen } = useNoteStore();
-  const [sidebarView, setSidebarView] = useState<SidebarView>('explorer');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { fetchNotes, fetchFolders, fetchTags, sidebarOpen, sidebarView, setSidebarView, isSearchOpen, setSearchOpen } = useNoteStore();
 
   const handleViewChange = (view: SidebarView) => {
     if (view === 'search') {
-      setIsSearchOpen((prev) => !prev);
+      setSearchOpen(!isSearchOpen);
     } else {
       setSidebarView(view);
-      setIsSearchOpen(false);
+      setSearchOpen(false);
     }
   };
 
@@ -70,7 +68,7 @@ const App: React.FC = () => {
       // CMD+K or CTRL+K for Search
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsSearchOpen(true);
+        setSearchOpen(true);
       }
     };
 
@@ -81,9 +79,9 @@ const App: React.FC = () => {
   // Fetch data when user logs in
   useEffect(() => {
     if (user) {
-      fetchFolders(user.id);
+      fetchFolders();
       fetchNotes(user.id);
-      fetchTags(user.id);
+      fetchTags();
     }
   }, [user]);
 
@@ -126,13 +124,13 @@ const App: React.FC = () => {
 
   const renderSidebarContent = () => {
     switch (sidebarView) {
-      case 'explorer': return <FileExplorer onSearchClick={() => setIsSearchOpen(true)} />;
+      case 'explorer': return <FileExplorer onSearchClick={() => setSearchOpen(true)} />;
       case 'tags': return <TagsPanel />;
       case 'kanban': return <ProjectPanel />;
       case 'graph': return null;
       case 'draw': return null;
       case 'trash': return null;
-      default: return <FileExplorer onSearchClick={() => setIsSearchOpen(true)} />;
+      default: return <FileExplorer onSearchClick={() => setSearchOpen(true)} />;
     }
   };
 
@@ -164,8 +162,8 @@ const App: React.FC = () => {
       {/* Search Overlay */}
       {isSearchOpen && (
         <SearchPanel
-          onResultClick={() => setIsSearchOpen(false)}
-          onClose={() => setIsSearchOpen(false)}
+          onResultClick={() => setSearchOpen(false)}
+          onClose={() => setSearchOpen(false)}
         />
       )}
 

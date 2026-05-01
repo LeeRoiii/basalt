@@ -3,10 +3,11 @@ import { Layout, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useNoteStore } from '../../store/noteStore';
 import { useAuthStore } from '../../store/authStore';
 import ConfirmationModal from '../common/ConfirmationModal';
+import Skeleton from '../common/Skeleton';
 
 const ProjectPanel: React.FC = () => {
     const { user } = useAuthStore();
-    const { notes, activeNote, createKanban, deleteNote, updateNote, setActiveNote } = useNoteStore();
+    const { notes, activeNote, createKanban, deleteNote, updateNote, setActiveNote, isFetching } = useNoteStore();
     const [renamingId, setRenamingId] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState('');
     const [isAdding, setIsAdding] = useState(false);
@@ -74,7 +75,16 @@ const ProjectPanel: React.FC = () => {
                         />
                     </div>
                 )}
-                {kanbanProjects.length === 0 && !isAdding ? (
+                {isFetching.notes && kanbanProjects.length === 0 ? (
+                    <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Skeleton circle width={16} height={16} />
+                                <Skeleton width={`${60 + Math.random() * 30}%`} height={14} />
+                            </div>
+                        ))}
+                    </div>
+                ) : kanbanProjects.length === 0 && !isAdding ? (
                     <div className="empty-sidebar-msg">
                         No projects yet. Create your first board!
                     </div>

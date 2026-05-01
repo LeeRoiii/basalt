@@ -3,6 +3,7 @@ import { Plus, FolderPlus, ChevronRight, ChevronDown, Folder, FolderOpen, FileTe
 import { useNoteStore } from '../../store/noteStore';
 import { useAuthStore } from '../../store/authStore';
 import type { Folder as FolderType, Note } from '../../types';
+import Skeleton from '../common/Skeleton';
 
 interface ContextMenuState {
     x: number;
@@ -19,7 +20,7 @@ interface FileExplorerProps {
 const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
     const { user } = useAuthStore();
     const {
-        notes, folders, activeNote, activeFolder,
+        notes, folders, activeNote, activeFolder, isFetching,
         createNote, createFolder, deleteNote, deleteFolder, renameFolder, updateNote, moveNote, moveFolder,
         setActiveNote, setActiveFolder,
     } = useNoteStore();
@@ -362,10 +363,23 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, 'root')}
             >
-                {rootFolders.map((f) => renderFolder(f))}
-                {rootNotes.map((n) => renderNote(n))}
-                {folders.length === 0 && notes.length === 0 && (
-                    <div className="empty-sidebar-msg">No notes yet. Create one!</div>
+                {(isFetching.folders || isFetching.notes) && folders.length === 0 && notes.length === 0 ? (
+                    <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Skeleton circle width={16} height={16} />
+                                <Skeleton width={`${Math.max(40, Math.random() * 80)}%`} height={14} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <>
+                        {rootFolders.map((f) => renderFolder(f))}
+                        {rootNotes.map((n) => renderNote(n))}
+                        {folders.length === 0 && notes.length === 0 && !isFetching.folders && !isFetching.notes && (
+                            <div className="empty-sidebar-msg">No notes yet. Create one!</div>
+                        )}
+                    </>
                 )}
             </div>
 

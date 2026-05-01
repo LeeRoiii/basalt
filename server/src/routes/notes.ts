@@ -5,23 +5,48 @@ const router = Router();
 
 // GET all notes (optionally by folder)
 router.get('/', async (req: Request, res: Response) => {
-    const { folder_id, user_id } = req.query;
-    let query = supabase.from('notes').select('*, tags(*)').order('updated_at', { ascending: false }).is('deleted_at', null);
+    const { folder_id, limit = '50', offset = '0', minimal = 'false' } = req.query;
+    const user_id = (req as any).user.id;
 
-    if (user_id) query = query.eq('user_id', user_id as string);
+    // Optimize: Sidebar/Nav only needs minimal info, not full content + joins
+    const selectFields = minimal === 'true'
+        ? 'id, title, folder_id, updated_at, type'
+        : '*, tags(*), columns:kanban_columns(*, tasks:kanban_tasks(*))';
+
+    let query = supabase
+        .from('notes')
+        .select(selectFields, { count: 'exact' })
+        .order('updated_at', { ascending: false })
+        .is('deleted_at', null)
+        .range(parseInt(offset as string), parseInt(offset as string) + parseInt(limit as string) - 1);
+
+    if (user_id) query = query.eq('user_id', user_id);
     if (folder_id) query = query.eq('folder_id', folder_id as string);
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
     if (error) return res.status(500).json({ error: error.message });
+
+    if (count !== null) res.setHeader('X-Total-Count', count);
+
+    // Optional: Sort columns and tasks if they exist
+    data.forEach((note: any) => {
+        if (note.type === 'kanban' && note.columns) {
+            note.columns.sort((a: any, b: any) => a.order - b.order);
+            note.columns.forEach((col: any) => {
+                if (col.tasks) col.tasks.sort((a: any, b: any) => a.order - b.order);
+            });
+        }
+    });
+
     return res.json(data);
 });
 
 // GET trashed notes
 router.get('/trash', async (req: Request, res: Response) => {
-    const { user_id } = req.query;
+    const user_id = (req as any).user.id;
     let query = supabase.from('notes').select('*, tags(*)').order('deleted_at', { ascending: false }).not('deleted_at', 'is', null);
 
-    if (user_id) query = query.eq('user_id', user_id as string);
+    if (user_id) query = query.eq('user_id', user_id);
 
     const { data, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
@@ -42,15 +67,15 @@ const extractImageFilenames = (content: string): string[] => {
 
 // DELETE empty trash
 router.delete('/trash', async (req: Request, res: Response) => {
-    const { user_id } = req.query;
-    if (!user_id) return res.status(400).json({ error: 'User ID is required' });
+    const user_id = (req as any).user.id;
+    if (!user_id) return res.status(401).json({ error: 'Authentication required' });
 
     // Pre-fetch notes to delete associated images
     const { data: trashedNotes } = await supabase
         .from('notes')
         .select('content')
         .not('deleted_at', 'is', null)
-        .eq('user_id', user_id as string);
+        .eq('user_id', user_id);
 
     if (trashedNotes && trashedNotes.length > 0) {
         const filesToDelete = trashedNotes.flatMap(note => extractImageFilenames(note.content || ''));
@@ -59,17 +84,19 @@ router.delete('/trash', async (req: Request, res: Response) => {
         }
     }
 
-    const { error } = await supabase.from('notes').delete().not('deleted_at', 'is', null).eq('user_id', user_id as string);
+    const { error } = await supabase.from('notes').delete().not('deleted_at', 'is', null).eq('user_id', user_id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Trash emptied' });
 });
 
 // GET single note
 router.get('/:id', async (req: Request, res: Response) => {
+    const user_id = (req as any).user.id;
     const { data, error } = await supabase
         .from('notes')
         .select('*, tags(*), folders(name), columns:kanban_columns(*, tasks:kanban_tasks(*))')
         .eq('id', req.params.id)
+        .eq('user_id', user_id)
         .single();
 
     if (error) return res.status(404).json({ error: 'Note not found' });
@@ -90,7 +117,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST create note
 router.post('/', async (req: Request, res: Response) => {
     console.log('📥 POST /notes', req.body);
-    const { title, content, folder_id, user_id, tag_ids, type } = req.body;
+    const { title, content, folder_id, tag_ids, type } = req.body;
+    const user_id = (req as any).user.id;
+
     const { data, error } = await supabase
         .from('notes')
         .insert({ title: title || 'Untitled', content: content || '', folder_id, user_id, type: type || 'note' })
@@ -117,10 +146,13 @@ router.post('/', async (req: Request, res: Response) => {
 // PUT update note
 router.put('/:id', async (req: Request, res: Response) => {
     const { title, content, folder_id, tag_ids, type } = req.body;
+    const user_id = (req as any).user.id;
+
     const { data, error } = await supabase
         .from('notes')
         .update({ title, content, folder_id, type, updated_at: new Date().toISOString() })
         .eq('id', req.params.id)
+        .eq('user_id', user_id)
         .select()
         .single();
 
@@ -140,25 +172,37 @@ router.put('/:id', async (req: Request, res: Response) => {
 
 // DELETE note (soft delete)
 router.delete('/:id', async (req: Request, res: Response) => {
-    const { error } = await supabase.from('notes').update({ deleted_at: new Date().toISOString() }).eq('id', req.params.id);
+    const user_id = (req as any).user.id;
+    const { error } = await supabase
+        .from('notes')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', req.params.id)
+        .eq('user_id', user_id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Note moved to trash' });
 });
 
 // PUT restore note
 router.put('/:id/restore', async (req: Request, res: Response) => {
-    const { error } = await supabase.from('notes').update({ deleted_at: null }).eq('id', req.params.id);
+    const user_id = (req as any).user.id;
+    const { error } = await supabase
+        .from('notes')
+        .update({ deleted_at: null })
+        .eq('id', req.params.id)
+        .eq('user_id', user_id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Note restored' });
 });
 
 // DELETE note permanently
 router.delete('/:id/permanent', async (req: Request, res: Response) => {
+    const user_id = (req as any).user.id;
     // Pre-fetch note to delete associated images
     const { data: note } = await supabase
         .from('notes')
         .select('content')
         .eq('id', req.params.id)
+        .eq('user_id', user_id)
         .single();
 
     if (note) {
@@ -168,20 +212,31 @@ router.delete('/:id/permanent', async (req: Request, res: Response) => {
         }
     }
 
-    const { error } = await supabase.from('notes').delete().eq('id', req.params.id);
+    const { error } = await supabase
+        .from('notes')
+        .delete()
+        .eq('id', req.params.id)
+        .eq('user_id', user_id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Note deleted permanently' });
 });
 
 // GET backlinks for a note
 router.get('/:id/backlinks', async (req: Request, res: Response) => {
-    const { data: note } = await supabase.from('notes').select('title').eq('id', req.params.id).single();
+    const user_id = (req as any).user.id;
+    const { data: note } = await supabase
+        .from('notes')
+        .select('title')
+        .eq('id', req.params.id)
+        .eq('user_id', user_id)
+        .single();
     if (!note) return res.status(404).json({ error: 'Note not found' });
 
     const { data, error } = await supabase
         .from('notes')
         .select('id, title, updated_at')
         .ilike('content', `%[[${note.title}]]%`)
+        .eq('user_id', user_id)
         .is('deleted_at', null);
 
     if (error) return res.status(500).json({ error: error.message });
