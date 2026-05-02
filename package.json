@@ -11,7 +11,8 @@
     "dev": "concurrently --names \"client,server\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
-    "build": "npm run build -w client",
+    "build": "npm run build -w client && npm run build -w server",
+    "start": "node server/dist/index.js",
     "install:all": "npm install && npm install -w client && npm install -w server"
   },
   "devDependencies": {
