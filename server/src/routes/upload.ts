@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-
-import { supabase } from '../lib/supabase';
+import { getSupabaseClient } from '../lib/supabase';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -23,12 +23,13 @@ const upload = multer({
 });
 
 // Endpoint to upload a single image
-router.post('/image', upload.single('image'), async (req, res) => {
+router.post('/image', upload.single('image'), async (req: AuthenticatedRequest, res: Response) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image uploaded' });
         }
 
+        const supabase = getSupabaseClient(req.user?.token);
         const ext = path.extname(req.file.originalname);
         const filename = `${uuidv4()}${ext}`;
 
@@ -62,12 +63,14 @@ router.post('/image', upload.single('image'), async (req, res) => {
 });
 
 // Endpoint to delete a single image
-router.delete('/image', async (req, res) => {
+router.delete('/image', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { url } = req.body;
         if (!url) {
             return res.status(400).json({ error: 'No image URL provided' });
         }
+
+        const supabase = getSupabaseClient(req.user?.token);
 
         // Extract filename from URL (e.g., https://.../uploads/filename.png)
         const parts = url.split('/');
@@ -84,7 +87,8 @@ router.delete('/image', async (req, res) => {
 
         if (deleteError) {
             console.error('Supabase delete error:', deleteError);
-            throw deleteError;
+            // If it's a 403 or 404, it might be an ownership issue if RLS is on
+            return res.status(400).json({ error: 'Failed to delete image. You may not have permission.' });
         }
 
         return res.status(200).json({ message: 'Image deleted successfully' });

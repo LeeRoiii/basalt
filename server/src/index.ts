@@ -1,8 +1,11 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import compression from 'compression';
 import path from 'path';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
 import notesRouter from './routes/notes';
 import foldersRouter from './routes/folders';
 import tagsRouter from './routes/tags';
@@ -19,14 +22,24 @@ if (!process.env.SUPABASE_URL) {
     dotenv.config({ path: parentEnvPath });
 }
 
-console.log(`📡 Loading env from: ${process.env.SUPABASE_URL ? 'FOUND' : 'NOT FOUND'}`);
-console.log(`📂 Current Dir: ${process.cwd()}`);
-console.log(`📄 Env Path Attempted: ${envPath}`);
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(compression());
+// Security Middleware
+app.use(helmet()); // Basic security headers
+app.use(compression()); // Compress responses
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per windowMs
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
+// Apply rate limiter to all api routes
+app.use('/api/', limiter);
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -63,14 +76,23 @@ app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
         supabaseUrl: !!process.env.SUPABASE_URL,
-        serviceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
     });
+});
+
+// Global Error Handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('🔥 Global Error:', err.stack || err);
+    const status = err.status || 500;
+    const message = process.env.NODE_ENV === 'production' 
+        ? 'Internal Server Error' 
+        : err.message || 'Internal Server Error';
+    
+    res.status(status).json({ error: message });
 });
 
 app.listen(PORT, () => {
     console.log(`\n🪨 Basalt server running on http://localhost:${PORT}`);
     console.log(`🔑 Supabase URL: ${process.env.SUPABASE_URL ? '✅ Configured' : '❌ Missing'}`);
-    console.log(`🔑 Service Key: ${(process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0) > 50 ? '✅ Configured' : '⚠️ Invalid or missing'}\n`);
 });
 
 export default app;

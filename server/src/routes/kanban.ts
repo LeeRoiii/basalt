@@ -1,14 +1,16 @@
-import { Router, Request, Response } from 'express';
-import { supabase } from '../lib/supabase';
+import { Router, Response } from 'express';
+import { getSupabaseClient } from '../lib/supabase';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
 // --- Columns ---
 
 // Create column
-router.post('/columns', async (req: Request, res: Response) => {
-    console.log('📥 POST /kanban/columns', req.body);
+router.post('/columns', async (req: AuthenticatedRequest, res: Response) => {
     const { note_id, title, color, order } = req.body;
+    const supabase = getSupabaseClient(req.user?.token);
+
     const { data, error } = await supabase
         .from('kanban_columns')
         .insert({ note_id, title, color, order: order || 0 })
@@ -19,17 +21,19 @@ router.post('/columns', async (req: Request, res: Response) => {
         console.error('❌ Supabase Column Insert Error:', error);
         return res.status(400).json({ error: error.message });
     }
-    console.log('✅ Column created:', data.id);
     return res.status(201).json(data);
 });
 
 // Update column (rename/reorder)
-router.put('/columns/:id', async (req: Request, res: Response) => {
+router.put('/columns/:id', async (req: AuthenticatedRequest, res: Response) => {
     const { title, color, order } = req.body;
+    const supabase = getSupabaseClient(req.user?.token);
     const updatePayload: Record<string, any> = {};
+
     if (title !== undefined) updatePayload.title = title;
     if (color !== undefined) updatePayload.color = color;
     if (order !== undefined) updatePayload.order = order;
+
     const { data, error } = await supabase
         .from('kanban_columns')
         .update(updatePayload)
@@ -42,7 +46,8 @@ router.put('/columns/:id', async (req: Request, res: Response) => {
 });
 
 // Delete column
-router.delete('/columns/:id', async (req: Request, res: Response) => {
+router.delete('/columns/:id', async (req: AuthenticatedRequest, res: Response) => {
+    const supabase = getSupabaseClient(req.user?.token);
     const { error } = await supabase.from('kanban_columns').delete().eq('id', req.params.id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Column deleted' });
@@ -51,8 +56,10 @@ router.delete('/columns/:id', async (req: Request, res: Response) => {
 // --- Tasks ---
 
 // Create task
-router.post('/tasks', async (req: Request, res: Response) => {
+router.post('/tasks', async (req: AuthenticatedRequest, res: Response) => {
     const { column_id, content, order, description, due_date, priority, tags } = req.body;
+    const supabase = getSupabaseClient(req.user?.token);
+
     const { data, error } = await supabase
         .from('kanban_tasks')
         .insert({
@@ -72,9 +79,11 @@ router.post('/tasks', async (req: Request, res: Response) => {
 });
 
 // Update task (content, column move, reorder, and advanced fields)
-router.put('/tasks/:id', async (req: Request, res: Response) => {
+router.put('/tasks/:id', async (req: AuthenticatedRequest, res: Response) => {
     const { content, column_id, order, description, due_date, priority, tags } = req.body;
+    const supabase = getSupabaseClient(req.user?.token);
     const updatePayload: Record<string, any> = {};
+
     if (content !== undefined) updatePayload.content = content;
     if (column_id !== undefined) updatePayload.column_id = column_id;
     if (order !== undefined) updatePayload.order = order;
@@ -82,6 +91,7 @@ router.put('/tasks/:id', async (req: Request, res: Response) => {
     if (due_date !== undefined) updatePayload.due_date = due_date;
     if (priority !== undefined) updatePayload.priority = priority;
     if (tags !== undefined) updatePayload.tags = tags;
+
     const { data, error } = await supabase
         .from('kanban_tasks')
         .update(updatePayload)
@@ -94,7 +104,8 @@ router.put('/tasks/:id', async (req: Request, res: Response) => {
 });
 
 // Delete task
-router.delete('/tasks/:id', async (req: Request, res: Response) => {
+router.delete('/tasks/:id', async (req: AuthenticatedRequest, res: Response) => {
+    const supabase = getSupabaseClient(req.user?.token);
     const { error } = await supabase.from('kanban_tasks').delete().eq('id', req.params.id);
     if (error) return res.status(400).json({ error: error.message });
     return res.json({ message: 'Task deleted' });

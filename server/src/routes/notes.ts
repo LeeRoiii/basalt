@@ -1,12 +1,14 @@
-import { Router, Request, Response } from 'express';
-import { supabase } from '../lib/supabase';
+import { Router, Response } from 'express';
+import { getSupabaseClient } from '../lib/supabase';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
 
 // GET all notes (optionally by folder)
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     const { folder_id, limit = '50', offset = '0', minimal = 'false' } = req.query;
-    const user_id = (req as any).user.id;
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
 
     // Optimize: Sidebar/Nav only needs minimal info, not full content + joins
     const selectFields = minimal === 'true'
@@ -42,8 +44,10 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // GET trashed notes
-router.get('/trash', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.get('/trash', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
+    
     let query = supabase.from('notes').select('*, tags(*)').order('deleted_at', { ascending: false }).not('deleted_at', 'is', null);
 
     if (user_id) query = query.eq('user_id', user_id);
@@ -66,9 +70,10 @@ const extractImageFilenames = (content: string): string[] => {
 };
 
 // DELETE empty trash
-router.delete('/trash', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.delete('/trash', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
     if (!user_id) return res.status(401).json({ error: 'Authentication required' });
+    const supabase = getSupabaseClient(req.user?.token);
 
     // Pre-fetch notes to delete associated images
     const { data: trashedNotes } = await supabase
@@ -90,8 +95,10 @@ router.delete('/trash', async (req: Request, res: Response) => {
 });
 
 // GET single note
-router.get('/:id', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
+
     const { data, error } = await supabase
         .from('notes')
         .select('*, tags(*), folders(name), columns:kanban_columns(*, tasks:kanban_tasks(*))')
@@ -115,10 +122,10 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST create note
-router.post('/', async (req: Request, res: Response) => {
-    console.log('📥 POST /notes', req.body);
+router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     const { title, content, folder_id, tag_ids, type } = req.body;
-    const user_id = (req as any).user.id;
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
 
     const { data, error } = await supabase
         .from('notes')
@@ -131,11 +138,8 @@ router.post('/', async (req: Request, res: Response) => {
         return res.status(400).json({ error: error.message });
     }
 
-    console.log('✅ Note created:', data.id);
-
     // Link tags if provided
     if (tag_ids && tag_ids.length > 0 && data) {
-        console.log('🔗 Linking tags...', tag_ids);
         const noteTagInserts = tag_ids.map((tag_id: string) => ({ note_id: data.id, tag_id }));
         await supabase.from('note_tags').insert(noteTagInserts);
     }
@@ -144,9 +148,10 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // PUT update note
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
     const { title, content, folder_id, tag_ids, type } = req.body;
-    const user_id = (req as any).user.id;
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
 
     const { data, error } = await supabase
         .from('notes')
@@ -171,8 +176,10 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE note (soft delete)
-router.delete('/:id', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
+
     const { error } = await supabase
         .from('notes')
         .update({ deleted_at: new Date().toISOString() })
@@ -183,8 +190,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // PUT restore note
-router.put('/:id/restore', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.put('/:id/restore', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
+
     const { error } = await supabase
         .from('notes')
         .update({ deleted_at: null })
@@ -195,8 +204,10 @@ router.put('/:id/restore', async (req: Request, res: Response) => {
 });
 
 // DELETE note permanently
-router.delete('/:id/permanent', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.delete('/:id/permanent', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
+
     // Pre-fetch note to delete associated images
     const { data: note } = await supabase
         .from('notes')
@@ -222,8 +233,10 @@ router.delete('/:id/permanent', async (req: Request, res: Response) => {
 });
 
 // GET backlinks for a note
-router.get('/:id/backlinks', async (req: Request, res: Response) => {
-    const user_id = (req as any).user.id;
+router.get('/:id/backlinks', async (req: AuthenticatedRequest, res: Response) => {
+    const user_id = req.user?.id;
+    const supabase = getSupabaseClient(req.user?.token);
+
     const { data: note } = await supabase
         .from('notes')
         .select('title')
