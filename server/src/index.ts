@@ -26,7 +26,29 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security Middleware
-app.use(helmet()); // Basic security headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        useDefaults: false, // Turn off defaults to avoid merging issues
+        directives: {
+            "default-src": ["'self'"],
+            "connect-src": [
+                "'self'", 
+                "https://*.supabase.co", 
+                "wss://*.supabase.co", 
+                "https://kxtbpthhwebvgmbgjbaz.supabase.co",
+                "https://fonts.googleapis.com", 
+                "https://fonts.gstatic.com"
+            ],
+            "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
+            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            "img-src": ["'self'", "data:", "https://*.supabase.co"],
+            "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            "frame-ancestors": ["'self'"],
+            "object-src": ["'none'"],
+            "upgrade-insecure-requests": [],
+        },
+    },
+}));
 app.use(compression()); // Compress responses
 
 // Rate limiting
