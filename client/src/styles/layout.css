@@ -265,6 +265,12 @@
     flex-shrink: 0;
 }
 
+@media (max-width: 768px) {
+    .status-bar {
+        display: none;
+    }
+}
+
 .status-bar-left,
 .status-bar-right {
     display: flex;
