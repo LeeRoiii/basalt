@@ -77,7 +77,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // For any request that doesn't match an API route, serve the frontend
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
 });
 
