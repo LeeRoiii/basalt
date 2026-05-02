@@ -156,7 +156,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
             });
 
             await Promise.all(promises);
-        } catch (error) {
+        } catch {
             // Silently fail
         }
     };

@@ -27,7 +27,7 @@ const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
                 if (ref.current) {
                     ref.current.innerHTML = svg;
                 }
-            } catch (err) {
+            } catch {
                 if (ref.current) {
                     ref.current.innerHTML = `<pre style="color: var(--danger); font-size: 12px;">Mermaid Error: Click to edit and fix syntax</pre>`;
                 }

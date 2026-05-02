@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             const { useNoteStore } = await import('./noteStore');
             useNoteStore.getState().clearStore();
-        } catch (err) {
+        } catch {
             // Silently fail
         }
     },

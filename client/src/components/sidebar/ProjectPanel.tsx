@@ -22,7 +22,7 @@ const ProjectPanel: React.FC = () => {
             await createKanban(user.id, undefined, newName.trim());
             setIsAdding(false);
             setNewName('');
-        } catch (err) {
+        } catch {
             // Silently fail
         }
     };

@@ -33,7 +33,7 @@ export async function registerServiceWorker(): Promise<void> {
                 }
             });
         });
-    } catch (error) {
+    } catch {
         // Silently fail
     }
 }

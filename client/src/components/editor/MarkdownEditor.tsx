@@ -208,7 +208,7 @@ const MarkdownEditor: React.FC<EditorProps> = ({ noteId }) => {
 
         oldUrls.forEach(url => {
             if (!newUrls.includes(url) && url.includes('/uploads/')) {
-                api.delete('/upload/image', { data: { url } }).catch(e => { /* Silently fail */ });
+                api.delete('/upload/image', { data: { url } }).catch(_e => { /* Silently fail */ });
             }
         });
 
@@ -265,7 +265,7 @@ const MarkdownEditor: React.FC<EditorProps> = ({ noteId }) => {
                 // Trigger an update explicitly just in case state desync happens on background DOM modifications
                 handleChange(view.state.doc.toString());
             }
-        } catch (err) {
+        } catch {
             const currentDoc = view.state.doc.toString();
             const placeholderIdx = currentDoc.indexOf(placeholder);
             if (placeholderIdx !== -1) {

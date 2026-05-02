@@ -197,7 +197,7 @@ export const useNoteStore = create<NoteState>()(
                     if (data.length === 0 && !localStorage.getItem(`basalt_welcome_${userId}`)) {
                         await useNoteStore.getState().createWelcomeNote(userId);
                     }
-                } catch (error) {
+                } catch {
                     set((state) => ({ isFetching: { ...state.isFetching, notes: false } }));
                 }
             },
@@ -216,7 +216,7 @@ export const useNoteStore = create<NoteState>()(
                         lastFetched: { ...state.lastFetched, folders: Date.now() },
                         isFetching: { ...state.isFetching, folders: false }
                     }));
-                } catch (error) {
+                } catch {
                     set((state) => ({ isFetching: { ...state.isFetching, folders: false } }));
                 }
             },
@@ -235,7 +235,7 @@ export const useNoteStore = create<NoteState>()(
                         lastFetched: { ...state.lastFetched, tags: Date.now() },
                         isFetching: { ...state.isFetching, tags: false }
                     }));
-                } catch (error) {
+                } catch {
                     set((state) => ({ isFetching: { ...state.isFetching, tags: false } }));
                 }
             },
@@ -279,7 +279,7 @@ export const useNoteStore = create<NoteState>()(
                         openNotes: state.openNotes.map((n) => (n.id === id ? { ...n, ...data } : n)),
                         isSaving: false,
                     }));
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({
                         notes: previousState.notes,
@@ -304,7 +304,7 @@ export const useNoteStore = create<NoteState>()(
 
                 try {
                     await api.delete(`/notes/${id}`);
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({
                         notes: previousState.notes,
@@ -318,7 +318,7 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     const { data } = await api.post('/folders', { name, user_id: userId, parent_id: parentId });
                     set((state) => ({ folders: [...state.folders, data] }));
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -329,7 +329,7 @@ export const useNoteStore = create<NoteState>()(
 
                 try {
                     await api.delete(`/folders/${id}`);
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({ folders: previousState.folders });
                 }
@@ -347,7 +347,7 @@ export const useNoteStore = create<NoteState>()(
                     set((state) => ({
                         folders: state.folders.map((f) => (f.id === id ? { ...f, name: data.name } : f)),
                     }));
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({ folders: previousState.folders });
                 }
@@ -367,7 +367,7 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     await api.delete(`/tags/${id}`);
                     set((state) => ({ tags: state.tags.filter((t) => t.id !== id) }));
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -385,7 +385,7 @@ export const useNoteStore = create<NoteState>()(
                         notes: state.notes.map((n) => (n.id === id ? { ...n, folder_id: folderId, updated_at: data.updated_at } : n)),
                         activeNote: state.activeNote?.id === id ? { ...state.activeNote, folder_id: folderId, updated_at: data.updated_at } : state.activeNote,
                     }));
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({ notes: previousState.notes, activeNote: previousState.activeNote });
                 }
@@ -400,7 +400,7 @@ export const useNoteStore = create<NoteState>()(
 
                 try {
                     await api.put(`/folders/${id}`, { parent_id: parentId });
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({ folders: previousState.folders });
                 }
@@ -413,7 +413,7 @@ export const useNoteStore = create<NoteState>()(
                         api.get('/folders/trash', { params: { user_id: userId } })
                     ]);
                     set({ trashNotes: notesRes.data, trashFolders: foldersRes.data });
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -427,7 +427,7 @@ export const useNoteStore = create<NoteState>()(
                             notes: restoredNote ? [restoredNote, ...state.notes] : state.notes,
                         };
                     });
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -441,7 +441,7 @@ export const useNoteStore = create<NoteState>()(
                             folders: restoredFolder ? [...state.folders, restoredFolder] : state.folders,
                         };
                     });
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -449,7 +449,7 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     await api.delete(`/notes/${id}/permanent`);
                     set((state) => ({ trashNotes: state.trashNotes.filter((n) => n.id !== id) }));
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -457,7 +457,7 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     await api.delete(`/folders/${id}/permanent`);
                     set((state) => ({ trashFolders: state.trashFolders.filter((f) => f.id !== id) }));
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -468,7 +468,7 @@ export const useNoteStore = create<NoteState>()(
                         api.delete('/folders/trash', { params: { user_id: userId } }),
                     ]);
                     set({ trashNotes: [], trashFolders: [] });
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -523,7 +523,7 @@ Need to share your notes?
                         openNotes: [...state.openNotes, data]
                     }));
                     localStorage.setItem(`basalt_welcome_${userId}`, 'true');
-                } catch (error) {
+                } catch {
                 }
             },
 
@@ -581,7 +581,7 @@ Need to share your notes?
                             openNotes: state.openNotes.map(replaceTemp),
                         };
                     });
-                } catch (error) {
+                } catch {
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -614,7 +614,7 @@ Need to share your notes?
                             openNotes: state.openNotes.map(applyFinal as any),
                         };
                     });
-                } catch (error) {
+                } catch {
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -636,7 +636,7 @@ Need to share your notes?
 
                 try {
                     await api.delete(`/kanban/columns/${id}`);
-                } catch (error) {
+                } catch {
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -683,7 +683,7 @@ Need to share your notes?
                             openNotes: state.openNotes.map(replaceTemp as any),
                         };
                     });
-                } catch (error) {
+                } catch {
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -731,7 +731,7 @@ Need to share your notes?
                         activeNote: state.activeNote ? applyTaskUpdate(state.activeNote, task) : null,
                         openNotes: state.openNotes.map(n => applyTaskUpdate(n, task)),
                     }));
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({
                         notes: previousState.notes,
@@ -764,7 +764,7 @@ Need to share your notes?
 
                 try {
                     await api.delete(`/kanban/tasks/${id}`);
-                } catch (error) {
+                } catch {
                     // Rollback
                     set({
                         notes: previousState.notes,
