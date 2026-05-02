@@ -39,7 +39,7 @@ const limiter = rateLimit({
 });
 
 // Apply rate limiter to all api routes
-app.use('/api/', limiter);
+app.use('/api', limiter);
 
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -77,7 +77,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // For any request that doesn't match an API route, serve the frontend
-app.get(/.*/, (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
 });
 
