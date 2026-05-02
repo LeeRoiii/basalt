@@ -8,7 +8,6 @@
  */
 export async function registerServiceWorker(): Promise<void> {
     if (!('serviceWorker' in navigator)) {
-        console.log('[PWA] Service workers are not supported');
         return;
     }
 
@@ -16,8 +15,6 @@ export async function registerServiceWorker(): Promise<void> {
         const registration = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
         });
-
-        console.log('[PWA] Service worker registered:', registration.scope);
 
         // Check for updates periodically (every 60 minutes)
         setInterval(() => {
@@ -37,7 +34,7 @@ export async function registerServiceWorker(): Promise<void> {
             });
         });
     } catch (error) {
-        console.error('[PWA] Service worker registration failed:', error);
+        // Silently fail
     }
 }
 

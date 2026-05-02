@@ -42,7 +42,6 @@ router.post('/image', upload.single('image'), async (req: AuthenticatedRequest, 
             });
 
         if (uploadError) {
-            console.error('Supabase upload error:', uploadError);
             throw uploadError;
         }
 
@@ -57,7 +56,6 @@ router.post('/image', upload.single('image'), async (req: AuthenticatedRequest, 
             originalname: req.file.originalname,
         });
     } catch (error) {
-        console.error('Image upload error:', error);
         return res.status(500).json({ error: 'Failed to upload image' });
     }
 });
@@ -86,14 +84,12 @@ router.delete('/image', async (req: AuthenticatedRequest, res: Response) => {
             .remove([filename]);
 
         if (deleteError) {
-            console.error('Supabase delete error:', deleteError);
             // If it's a 403 or 404, it might be an ownership issue if RLS is on
             return res.status(400).json({ error: 'Failed to delete image. You may not have permission.' });
         }
 
         return res.status(200).json({ message: 'Image deleted successfully' });
     } catch (error) {
-        console.error('Image delete error:', error);
         return res.status(500).json({ error: 'Failed to delete image' });
     }
 });

@@ -15,13 +15,10 @@ api.interceptors.request.use(async (config) => {
     return config;
 });
 
-// Production error logging
+// Handle errors silently
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (import.meta.env.PROD) {
-            console.error('📡 API Error:', error.response?.data?.message || error.message);
-        }
         return Promise.reject(error);
     }
 );

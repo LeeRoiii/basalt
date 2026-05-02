@@ -9,7 +9,7 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-    console.error('❌ Missing Supabase keys in .env');
+    // Keys missing
 }
 
 export const supabase = createClient(supabaseUrl, supabaseServiceKey);

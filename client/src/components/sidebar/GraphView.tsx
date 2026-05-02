@@ -156,7 +156,6 @@ const GraphView: React.FC = () => {
 
                 kanbanDetailNodes.push(colNode);
                 kanbanEdges.push({ source: project.id, target: col.id, type: 'containment' });
-                console.log(`Created column node: ${colNode.title} (ID: ${colNode.id})`);
 
                 col.tasks?.forEach((task) => {
                     const existingTask = existingNodes.get(task.id);
@@ -185,7 +184,6 @@ const GraphView: React.FC = () => {
 
                     kanbanDetailNodes.push(taskNode);
                     kanbanEdges.push({ source: col.id, target: task.id, type: 'containment' });
-                    console.log(`Created task node: ${taskNode.title} (ID: ${taskNode.id})`);
                 });
             });
         });

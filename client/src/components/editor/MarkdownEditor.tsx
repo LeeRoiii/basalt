@@ -208,7 +208,7 @@ const MarkdownEditor: React.FC<EditorProps> = ({ noteId }) => {
 
         oldUrls.forEach(url => {
             if (!newUrls.includes(url) && url.includes('/uploads/')) {
-                api.delete('/upload/image', { data: { url } }).catch(e => console.error('Auto-delete image failed', e));
+                api.delete('/upload/image', { data: { url } }).catch(e => { /* Silently fail */ });
             }
         });
 
@@ -266,7 +266,6 @@ const MarkdownEditor: React.FC<EditorProps> = ({ noteId }) => {
                 handleChange(view.state.doc.toString());
             }
         } catch (err) {
-            console.error('Image upload failed', err);
             const currentDoc = view.state.doc.toString();
             const placeholderIdx = currentDoc.indexOf(placeholder);
             if (placeholderIdx !== -1) {

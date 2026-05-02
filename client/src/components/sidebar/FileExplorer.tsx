@@ -157,7 +157,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ onSearchClick }) => {
 
             await Promise.all(promises);
         } catch (error) {
-            console.error('Drop failed:', error);
+            // Silently fail
         }
     };
 

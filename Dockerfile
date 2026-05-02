@@ -1,3 +1,11 @@
+# --- Client Stage ---
+FROM node:20-alpine AS client-build
+WORKDIR /app/client
+COPY client/package*.json ./
+RUN npm install
+COPY client/ .
+RUN npm run build
+
 # --- Server Stage ---
 FROM node:20-alpine AS server-build
 WORKDIR /app/server
@@ -12,6 +20,9 @@ WORKDIR /app
 
 # Install security updates
 RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
+
+# Copy client dist
+COPY --from=client-build /app/client/dist ./client/dist
 
 # Copy server build and dependencies
 COPY --from=server-build /app/server/dist ./server/dist

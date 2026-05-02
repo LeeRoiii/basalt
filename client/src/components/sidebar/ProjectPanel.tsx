@@ -23,7 +23,7 @@ const ProjectPanel: React.FC = () => {
             setIsAdding(false);
             setNewName('');
         } catch (err) {
-            console.error('❌ Failed to create project:', err);
+            // Silently fail
         }
     };
 

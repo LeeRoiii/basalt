@@ -198,7 +198,6 @@ export const useNoteStore = create<NoteState>()(
                         await useNoteStore.getState().createWelcomeNote(userId);
                     }
                 } catch (error) {
-                    console.error('Failed to fetch notes:', error);
                     set((state) => ({ isFetching: { ...state.isFetching, notes: false } }));
                 }
             },
@@ -218,7 +217,6 @@ export const useNoteStore = create<NoteState>()(
                         isFetching: { ...state.isFetching, folders: false }
                     }));
                 } catch (error) {
-                    console.error('Failed to fetch folders:', error);
                     set((state) => ({ isFetching: { ...state.isFetching, folders: false } }));
                 }
             },
@@ -238,7 +236,6 @@ export const useNoteStore = create<NoteState>()(
                         isFetching: { ...state.isFetching, tags: false }
                     }));
                 } catch (error) {
-                    console.error('Failed to fetch tags:', error);
                     set((state) => ({ isFetching: { ...state.isFetching, tags: false } }));
                 }
             },
@@ -259,7 +256,6 @@ export const useNoteStore = create<NoteState>()(
                     }));
                     return data;
                 } catch (error) {
-                    console.error('Failed to create note:', error);
                     throw error;
                 }
             },
@@ -284,7 +280,6 @@ export const useNoteStore = create<NoteState>()(
                         isSaving: false,
                     }));
                 } catch (error) {
-                    console.error('Failed to update note:', error);
                     // Rollback
                     set({
                         notes: previousState.notes,
@@ -310,7 +305,6 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     await api.delete(`/notes/${id}`);
                 } catch (error) {
-                    console.error('Failed to delete note:', error);
                     // Rollback
                     set({
                         notes: previousState.notes,
@@ -325,7 +319,6 @@ export const useNoteStore = create<NoteState>()(
                     const { data } = await api.post('/folders', { name, user_id: userId, parent_id: parentId });
                     set((state) => ({ folders: [...state.folders, data] }));
                 } catch (error) {
-                    console.error('Failed to create folder:', error);
                 }
             },
 
@@ -337,7 +330,6 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     await api.delete(`/folders/${id}`);
                 } catch (error) {
-                    console.error('Failed to delete folder:', error);
                     // Rollback
                     set({ folders: previousState.folders });
                 }
@@ -356,7 +348,6 @@ export const useNoteStore = create<NoteState>()(
                         folders: state.folders.map((f) => (f.id === id ? { ...f, name: data.name } : f)),
                     }));
                 } catch (error) {
-                    console.error('Failed to rename folder:', error);
                     // Rollback
                     set({ folders: previousState.folders });
                 }
@@ -368,7 +359,6 @@ export const useNoteStore = create<NoteState>()(
                     set((state) => ({ tags: [...state.tags, data] }));
                     return data;
                 } catch (error) {
-                    console.error('Failed to create tag:', error);
                     throw error;
                 }
             },
@@ -378,7 +368,6 @@ export const useNoteStore = create<NoteState>()(
                     await api.delete(`/tags/${id}`);
                     set((state) => ({ tags: state.tags.filter((t) => t.id !== id) }));
                 } catch (error) {
-                    console.error('Failed to delete tag:', error);
                 }
             },
 
@@ -397,7 +386,6 @@ export const useNoteStore = create<NoteState>()(
                         activeNote: state.activeNote?.id === id ? { ...state.activeNote, folder_id: folderId, updated_at: data.updated_at } : state.activeNote,
                     }));
                 } catch (error) {
-                    console.error('Failed to move note:', error);
                     // Rollback
                     set({ notes: previousState.notes, activeNote: previousState.activeNote });
                 }
@@ -413,7 +401,6 @@ export const useNoteStore = create<NoteState>()(
                 try {
                     await api.put(`/folders/${id}`, { parent_id: parentId });
                 } catch (error) {
-                    console.error('Failed to move folder:', error);
                     // Rollback
                     set({ folders: previousState.folders });
                 }
@@ -427,7 +414,6 @@ export const useNoteStore = create<NoteState>()(
                     ]);
                     set({ trashNotes: notesRes.data, trashFolders: foldersRes.data });
                 } catch (error) {
-                    console.error('Failed to fetch trash:', error);
                 }
             },
 
@@ -442,7 +428,6 @@ export const useNoteStore = create<NoteState>()(
                         };
                     });
                 } catch (error) {
-                    console.error('Failed to restore note:', error);
                 }
             },
 
@@ -457,7 +442,6 @@ export const useNoteStore = create<NoteState>()(
                         };
                     });
                 } catch (error) {
-                    console.error('Failed to restore folder:', error);
                 }
             },
 
@@ -466,7 +450,6 @@ export const useNoteStore = create<NoteState>()(
                     await api.delete(`/notes/${id}/permanent`);
                     set((state) => ({ trashNotes: state.trashNotes.filter((n) => n.id !== id) }));
                 } catch (error) {
-                    console.error('Failed to permanently delete note:', error);
                 }
             },
 
@@ -475,7 +458,6 @@ export const useNoteStore = create<NoteState>()(
                     await api.delete(`/folders/${id}/permanent`);
                     set((state) => ({ trashFolders: state.trashFolders.filter((f) => f.id !== id) }));
                 } catch (error) {
-                    console.error('Failed to permanently delete folder:', error);
                 }
             },
 
@@ -487,7 +469,6 @@ export const useNoteStore = create<NoteState>()(
                     ]);
                     set({ trashNotes: [], trashFolders: [] });
                 } catch (error) {
-                    console.error('Failed to empty trash:', error);
                 }
             },
 
@@ -543,7 +524,6 @@ Need to share your notes?
                     }));
                     localStorage.setItem(`basalt_welcome_${userId}`, 'true');
                 } catch (error) {
-                    console.error('Failed to create welcome note:', error);
                 }
             },
 
@@ -572,7 +552,6 @@ Need to share your notes?
                     }));
                     return fullNote;
                 } catch (error) {
-                    console.error('❌ createKanban error:', error);
                     throw error;
                 }
             },
@@ -603,7 +582,6 @@ Need to share your notes?
                         };
                     });
                 } catch (error) {
-                    console.error('Failed to add column:', error);
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -637,7 +615,6 @@ Need to share your notes?
                         };
                     });
                 } catch (error) {
-                    console.error('Failed to update column:', error);
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -660,7 +637,6 @@ Need to share your notes?
                 try {
                     await api.delete(`/kanban/columns/${id}`);
                 } catch (error) {
-                    console.error('Failed to delete column:', error);
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -708,7 +684,6 @@ Need to share your notes?
                         };
                     });
                 } catch (error) {
-                    console.error('Failed to add task:', error);
                     set({ notes: previousState.notes, activeNote: previousState.activeNote, openNotes: previousState.openNotes });
                 }
             },
@@ -757,7 +732,6 @@ Need to share your notes?
                         openNotes: state.openNotes.map(n => applyTaskUpdate(n, task)),
                     }));
                 } catch (error) {
-                    console.error('Failed to update task:', error);
                     // Rollback
                     set({
                         notes: previousState.notes,
@@ -791,7 +765,6 @@ Need to share your notes?
                 try {
                     await api.delete(`/kanban/tasks/${id}`);
                 } catch (error) {
-                    console.error('Failed to delete task:', error);
                     // Rollback
                     set({
                         notes: previousState.notes,

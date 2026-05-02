@@ -41,12 +41,6 @@ const limiter = rateLimit({
 // Apply rate limiter to all api routes
 app.use('/api/', limiter);
 
-// Logging middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-});
-
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true,
@@ -69,6 +63,9 @@ app.use('/api/search', searchRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/kanban', kanbanRouter);
 
+// Serve static files from the client build
+app.use(express.static(path.join(process.cwd(), 'client/dist')));
+
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
@@ -79,9 +76,13 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// For any request that doesn't match an API route, serve the frontend
+app.get('*', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
+});
+
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error('🔥 Global Error:', err.stack || err);
     const status = err.status || 500;
     const message = process.env.NODE_ENV === 'production' 
         ? 'Internal Server Error' 
@@ -91,8 +92,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`\n🪨 Basalt server running on http://localhost:${PORT}`);
-    console.log(`🔑 Supabase URL: ${process.env.SUPABASE_URL ? '✅ Configured' : '❌ Missing'}`);
+    // Silent start or minimal log
 });
 
 export default app;

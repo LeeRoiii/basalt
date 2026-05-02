@@ -18,7 +18,6 @@ router.post('/columns', async (req: AuthenticatedRequest, res: Response) => {
         .single();
 
     if (error) {
-        console.error('❌ Supabase Column Insert Error:', error);
         return res.status(400).json({ error: error.message });
     }
     return res.status(201).json(data);

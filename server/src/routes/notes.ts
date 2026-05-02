@@ -134,7 +134,6 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         .single();
 
     if (error) {
-        console.error('❌ Supabase Note Insert Error:', error);
         return res.status(400).json({ error: error.message });
     }
 

@@ -48,7 +48,6 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ onResultClick, onClose }) => 
                 if (err.name === 'CanceledError' || axios.isCancel(err)) {
                     return; // Ignore cancellation
                 }
-                console.error(err);
             })
             .finally(() => {
                 if (!controller.signal.aborted) {

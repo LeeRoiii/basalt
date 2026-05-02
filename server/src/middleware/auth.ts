@@ -13,7 +13,6 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        console.error('❌ Authentication missing or invalid format');
         return res.status(401).json({ error: 'Authentication required' });
     }
 
@@ -23,7 +22,6 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         const { data: { user }, error } = await supabase.auth.getUser(token);
 
         if (error || !user) {
-            console.error('❌ Supabase Auth Error:', error?.message);
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
 
@@ -35,7 +33,6 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
         next();
     } catch (err) {
-        console.error('🔥 Unexpected Auth Middleware Error:', err);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
