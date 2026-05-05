@@ -1,18 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
-import path from 'path';
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-    // Keys missing
+    console.error('CRITICAL: Supabase environment variables are missing!');
+    console.error('Required: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export const supabase = createClient(supabaseUrl || '', supabaseServiceKey || '');
 
 /**
  * Creates a user-scoped Supabase client that respects RLS.
@@ -20,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey);
  */
 export const getSupabaseClient = (token?: string) => {
     if (!token) return supabase;
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    return createClient(supabaseUrl || '', supabaseAnonKey || '', {
         global: {
             headers: {
                 Authorization: `Bearer ${token}`

@@ -55,9 +55,16 @@ router.post('/image', upload.single('image'), async (req: AuthenticatedRequest, 
             filename: filename,
             originalname: req.file.originalname,
         });
-    } catch (error) {
-        console.error('Upload error:', error);
-        return res.status(500).json({ error: 'Failed to upload image' });
+    } catch (error: any) {
+        console.error('Upload error details:', {
+            message: error.message,
+            stack: error.stack,
+            error: error
+        });
+        return res.status(500).json({ 
+            error: 'Failed to upload image',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
