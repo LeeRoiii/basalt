@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { getSupabaseClient } from '../lib/supabase';
+import { getSupabaseClient, supabase as supabaseService } from '../lib/supabase';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -29,7 +29,7 @@ router.post('/image', upload.single('image'), async (req: AuthenticatedRequest, 
             return res.status(400).json({ error: 'No image uploaded' });
         }
 
-        const supabase = getSupabaseClient(req.user?.token);
+        const supabase = supabaseService;
         const ext = path.extname(req.file.originalname);
         const filename = `${uuidv4()}${ext}`;
 
@@ -56,6 +56,7 @@ router.post('/image', upload.single('image'), async (req: AuthenticatedRequest, 
             originalname: req.file.originalname,
         });
     } catch (error) {
+        console.error('Upload error:', error);
         return res.status(500).json({ error: 'Failed to upload image' });
     }
 });
